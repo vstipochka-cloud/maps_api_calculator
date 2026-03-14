@@ -197,12 +197,14 @@ const app = {
         // Get options
         const disableNewCustomerCredit = document.getElementById('disableNewCustomerCredit').checked;
         const disableFreeTier = document.getElementById('disableFreeTier').checked;
+        const currency = document.getElementById('currencySelector').value;
 
         // Show loading
         document.getElementById('loadingSpinner').style.display = 'block';
 
         console.log('Sending request to:', this.apiBaseURL + '/calculate');
         console.log('API Requests:', apiRequests);
+        console.log('Currency:', currency);
 
         // Make API call
         fetch(`${this.apiBaseURL}/calculate`, {
@@ -213,7 +215,8 @@ const app = {
             body: JSON.stringify({
                 api_requests: apiRequests,
                 disable_new_customer_credit: disableNewCustomerCredit,
-                disable_free_tier: disableFreeTier
+                disable_free_tier: disableFreeTier,
+                currency: currency
             })
         })
         .then(response => {
@@ -246,10 +249,12 @@ const app = {
         // Display best value card
         const bestResult = data.results[0];
         const bestValueCard = document.getElementById('bestValueCard');
+        const cost = data.currency === 'RUB' ? bestResult.converted_cost : bestResult.cost;
         bestValueCard.innerHTML = `
             <h3>Best Value: ${bestResult.name}</h3>
-            <div class="price">${this.formatCurrency(bestResult.cost)}</div>
+            <div class="price">${this.formatCurrency(cost, data.currency)}</div>
             <div class="unit">per month</div>
+            ${data.currency === 'RUB' ? `<div class="exchange-info">Exchange rate: 1 USD = ${data.exchange_rate.toFixed(2)} RUB</div>` : ''}
             ${bestResult.notes ? `<p>${bestResult.notes}</p>` : ''}
         `;
 
@@ -268,22 +273,22 @@ const app = {
             if (result.breakdown && Object.keys(result.breakdown).length > 0) {
                 breakdownHTML = '<div class="breakdown"><strong>Breakdown:</strong>';
                 for (const [apiType, breakdown] of Object.entries(result.breakdown)) {
-                    if (breakdown.cost > 0 || breakdown.billed_requests > 0) {
-                        breakdownHTML += `
-                            <div class="breakdown-item">
-                                <span>${this.formatAPIName(apiType)}</span>
-                                <span>${this.formatCurrency(breakdown.cost)}</span>
-                            </div>
-                        `;
-                    }
+                    const breakdownCost = data.currency === 'RUB' ? (breakdown.converted_cost || 0) : breakdown.cost;
+                    breakdownHTML += `
+                        <div class="breakdown-item">
+                            <span>${this.formatAPIName(apiType)}</span>
+                            <span>${this.formatCurrency(breakdownCost, data.currency)}</span>
+                        </div>
+                    `;
                 }
                 breakdownHTML += '</div>';
             }
 
+            const resultCost = data.currency === 'RUB' ? result.converted_cost : result.cost;
             card.innerHTML = `
                 ${index === 0 ? '<div style="color: var(--success); font-weight: bold; margin-bottom: 0.5rem;">BEST CHOICE</div>' : ''}
                 <h4>${result.name}</h4>
-                <div class="cost">${this.formatCurrency(result.cost)}</div>
+                <div class="cost">${this.formatCurrency(resultCost, data.currency)}</div>
                 <div style="color: var(--text-light); font-size: 0.9rem;">per month</div>
                 ${result.notes ? `<div class="notes">${result.notes}</div>` : ''}
                 ${breakdownHTML}
@@ -309,12 +314,15 @@ const app = {
             const row = document.createElement('div');
             row.className = 'summary-row';
             
-            const perRequest = totalRequests > 0 ? (result.cost / totalRequests * 1000).toFixed(6) : '0.00';
+            const cost = data.currency === 'RUB' ? result.converted_cost : result.cost;
+            const perRequest = totalRequests > 0 ? (cost / totalRequests * 1000).toFixed(6) : '0.00';
+            
+            const currencySymbol = data.currency === 'RUB' ? 'руб' : '$';
 
             row.innerHTML = `
                 <div>${result.name}</div>
-                <div>${this.formatCurrency(result.cost)}</div>
-                <div>$${perRequest}</div>
+                <div>${this.formatCurrency(cost, data.currency)}</div>
+                <div>${currencySymbol}${perRequest}</div>
             `;
             
             summaryRows.appendChild(row);
@@ -322,7 +330,15 @@ const app = {
     },
 
     // Format currency
-    formatCurrency(amount) {
+    formatCurrency(amount, currency = 'USD') {
+        if (currency === 'RUB') {
+            return new Intl.NumberFormat('ru-RU', {
+                style: 'currency',
+                currency: 'RUB',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount);
+        }
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: 'USD',
