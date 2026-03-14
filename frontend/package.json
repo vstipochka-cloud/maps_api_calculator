@@ -1,0 +1,14 @@
+{
+  "name": "api-calculator-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for API cost calculator - separate from backend",
+  "scripts": {
+    "start": "python3 -m http.server 3000",
+    "dev": "python3 -m http.server 3000",
+    "help": "echo 'Use: npm start to run frontend on port 3000'"
+  },
+  "keywords": ["api", "calculator", "pricing"],
+  "author": "StipochkaUser",
+  "license": "MIT",
+  "note": "This is a simple single-page app. No npm dependencies needed! Just run 'npm start' and open http://localhost:3000"
+}

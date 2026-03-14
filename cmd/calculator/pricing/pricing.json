@@ -1,0 +1,321 @@
+{
+  "metadata": {
+    "currency": "USD",
+    "last_updated": "2026-03",
+    "note": "Prices are approximate pay-as-you-go base rates after free tier (0-100K tier). Volume discounts apply at scale. Tiers: Essentials(10K-100K free), Pro(5K), Enterprise(1K). Data as of March 2026"
+  },
+  "api_types": [
+    "geocoding",
+    "routing",
+    "map_tiles_raster", 
+    "map_tiles_vector_2d",
+    "map_tiles_vector_3d",
+    "static_maps",
+    "static_street_view",
+    "distance_matrix",
+    "elevation",
+    "aerial_view"
+  ],
+  "providers": {
+    "google_maps": {
+      "name": "Google Maps Platform",
+      "url": "https://cloud.google.com/maps-platform",
+      "tiers": ["Essentials", "Pro", "Enterprise"],
+      "free_credit": {
+        "type": "one_time",
+        "amount_usd": 300,
+        "applies_to": "new_accounts_only",
+        "duration_months": 1,
+        "note": "Trial credit for new customers (1st month only)"
+      },
+      "monthly_free_tier": null,
+      "apis": {
+        "geocoding": {
+          "unit": "request",
+          "tier": "Essentials",
+          "price_per_1000": 5,
+          "free_tier": 10000,
+          "notes": "Geocoding API – 10K free/month, then $5/1K"
+        },
+        "routing": {
+          "unit": "request",
+          "tier": "Essentials", 
+          "price_per_1000": 5,
+          "free_tier": 10000,
+          "notes": "Routes: Compute Routes (Essentials) – 10K free, $5/1K"
+        },
+        "map_tiles_raster": {
+          "unit": "tile_load",
+          "tier": "Essentials",
+          "price_per_1000": 2,
+          "free_tier": 100000,
+          "notes": "Street View Tiles – 100K free, $2/1K"
+        },
+        "map_tiles_vector_2d": {
+          "unit": "tile_load",
+          "tier": "Essentials",
+          "price_per_1000": 0.6,
+          "free_tier": 100000,
+          "notes": "2D Map Tiles – 100K free, $0.60/1K"
+        },
+        "map_tiles_vector_3d": {
+          "unit": "root_tile_request",
+          "tier": "Enterprise", 
+          "price_per_1000": 6,
+          "free_tier": 1000,
+          "notes": "Photorealistic 3D Tiles – 1K free, $6/1K"
+        },
+        "static_maps": {
+          "unit": "map_load",
+          "tier": "Essentials",
+          "price_per_1000": 2,
+          "free_tier": 10000,
+          "notes": "Static Maps API – 10K free, $2/1K"
+        },
+        "static_street_view": {
+          "unit": "panorama",
+          "tier": "Essentials",
+          "price_per_1000": 7,
+          "free_tier": 10000,
+          "notes": "Static Street View – 10K free, $7/1K"
+        },
+        "distance_matrix": {
+          "unit": "element",
+          "tier": "Essentials",
+          "price_per_1000": 5,
+          "free_tier": 10000,
+          "notes": "Routes Matrix (Essentials) – 10K free, $5/1K per element"
+        },
+        "elevation": {
+          "unit": "request",
+          "tier": "Pro",
+          "price_per_1000": 5,
+          "free_tier": 5000,
+          "notes": "Elevation API (Pro) – 5K free, $5/1K"
+        },
+        "aerial_view": {
+          "unit": "request",
+          "tier": "Pro",
+          "price_per_1000": 16,
+          "free_tier": 5000,
+          "notes": "Aerial View API (Pro) – 5K free, $16/1K"
+        }
+      }
+    },
+    "mapbox": {
+      "name": "Mapbox",
+      "url": "https://www.mapbox.com/pricing",
+      "free_credit": null,
+      "monthly_free_tier": null,
+      "apis": {
+        "geocoding": {
+          "unit": "request",
+          "tiers": [
+            {"from_requests": 0, "to_requests": 100000, "price_per_1000": 0.00},
+            {"from_requests": 30001, "to_requests": 5000000, "price_per_1000": 0.83},
+            {"from_requests": 5000001, "to_requests": 10000000, "price_per_1000": 0.66},
+            {"from_requests": 10000001, "to_requests": 0, "price_per_1000": 0.66}
+          ],
+          "free_tier": 0,
+          "notes": "Geocode and Reverse Geocode – Free (0-30k), $0.83/1K (30k-5M), $0.66/1K (5M-10M), Contact sales (10M+)"
+        },
+        "routing": {
+          "unit": "request",
+          "tiers": [
+            {"from_requests": 0, "to_requests": 100000, "price_per_1000": 0.00},
+            {"from_requests": 100001, "to_requests": 500000, "price_per_1000": 2.00},
+            {"from_requests": 500001, "to_requests": 1000000, "price_per_1000": 1.60},
+            {"from_requests": 1000001, "to_requests": 0, "price_per_1000": 1.20}
+          ],
+          "free_tier": 0,
+          "notes": "Directions API – Free (0-100k), $2.00/1K (100k-500k), $1.60/1K (500k-1M), $1.20/1K (1M+)"
+        },
+        "map_tiles_raster": {
+          "unit": "tile_load",
+          "tiers": [
+            {"from_requests": 0, "to_requests": 750000, "price_per_1000": 0.00},
+            {"from_requests": 750001, "to_requests": 2000000, "price_per_1000": 0.25},
+            {"from_requests": 2000001, "to_requests": 4000000, "price_per_1000": 0.20},
+            {"from_requests": 4000001, "to_requests": 0, "price_per_1000": 0.15}
+          ],
+          "free_tier": 0,
+          "notes": "Raster Tiles API – Free (0-750k), $0.25/1K (750k-2M), $0.20/1K (2M-4M), $0.15/1K (4M+)"
+        },
+        "map_tiles_vector_2d": {
+          "unit": "tile_load",
+          "tiers": [
+            {"from_requests": 0, "to_requests": 200000, "price_per_1000": 0.00},
+            {"from_requests": 200001, "to_requests": 2000000, "price_per_1000": 0.25},
+            {"from_requests": 2000001, "to_requests": 4000000, "price_per_1000": 0.20},
+            {"from_requests": 4000001, "to_requests": 0, "price_per_1000": 0.15}
+          ],
+          "free_tier": 0,
+          "notes": "Vector Tiles API – Free (0-200k), $0.25/1K (200k-2M), $0.20/1K (2M-4M), $0.15/1K (4M+)"
+        },
+        "map_tiles_vector_3d": {
+          "unit": "tile_load",
+          "tiers": [
+            {"from_requests": 0, "to_requests": 200000, "price_per_1000": 0.00},
+            {"from_requests": 200001, "to_requests": 2000000, "price_per_1000": 0.25},
+            {"from_requests": 2000001, "to_requests": 4000000, "price_per_1000": 0.20},
+            {"from_requests": 4000001, "to_requests": 0, "price_per_1000": 0.15}
+          ],
+          "free_tier": 0,
+          "notes": "Vector Tiles API – Free (0-200k), $0.25/1K (200k-2M), $0.20/1K (2M-4M), $0.15/1K (4M+)"
+        },
+        "static_maps": {
+          "unit": "request",
+          "tiers": [
+            {"from_requests": 0, "to_requests": 50000, "price_per_1000": 0.00},
+            {"from_requests": 50001, "to_requests": 500000, "price_per_1000": 1.00},
+            {"from_requests": 500001, "to_requests": 1000000, "price_per_1000": 0.80},
+            {"from_requests": 1000001, "to_requests": 0, "price_per_1000": 0.60}
+          ],
+          "free_tier": 0,
+          "notes": "Static Images API – Free (0-50k), $1.00/1K (50k-500k), $0.80/1K (500k-1M), $0.60/1K (1M+)"
+        },
+        "static_street_view": {
+          "unit": "request",
+          "supported": false,
+          "price_per_1000": null,
+          "free_tier": null,
+          "notes": "Not offered by Mapbox"
+        },
+        "distance_matrix": {
+          "unit": "request",
+          "tiers": [
+            {"from_requests": 0, "to_requests": 100000, "price_per_1000": 0.00},
+            {"from_requests": 100001, "to_requests": 500000, "price_per_1000": 2.00},
+            {"from_requests": 500001, "to_requests": 1000000, "price_per_1000": 1.60},
+            {"from_requests": 1000001, "to_requests": 0, "price_per_1000": 1.20}
+          ],
+          "free_tier": 0,
+          "notes": "Matrix API – Free (0-100k), $2.00/1K (100k-500k), $1.60/1K (500k-1M), $1.20/1K (1M+)"
+        },
+        "elevation": {
+          "unit": "request",
+          "tiers": [
+            {"from_requests": 0, "to_requests": 100000, "price_per_1000": 0.00},
+            {"from_requests": 100001, "to_requests": 500000, "price_per_1000": 2.00},
+            {"from_requests": 500001, "to_requests": 1000000, "price_per_1000": 1.60},
+            {"from_requests": 1000001, "to_requests": 0, "price_per_1000": 1.20}
+          ],
+          "free_tier": 0,
+          "notes": "Map Matching API – Free (0-100k), $2.00/1K (100k-500k), $1.60/1K (500k-1M), $1.20/1K (1M+)"
+        },
+        "aerial_view": {
+          "unit": "request",
+          "supported": false,
+          "price_per_1000": null,
+          "free_tier": null,
+          "notes": "Not offered by Mapbox"
+        }
+      }
+    },
+    "here": {
+      "name": "HERE Technologies",
+      "url": "https://www.here.com/pricing",
+      "free_credit": null,
+      "monthly_free_tier": null,
+      "apis": {
+        "geocoding": {
+          "unit": "request",
+          "tiers": [
+            {"from_requests": 0, "to_requests": 30000, "price_per_1000": 0.00},
+            {"from_requests": 30001, "to_requests": 500000, "price_per_1000": 0.83},
+            {"from_requests": 500001, "to_requests": 5000000, "price_per_1000": 0.66}
+          ],
+          "free_tier": 0,
+          "notes": "Geocode and Reverse Geocode – Free (0-30k), $0.125/1K (30k-500k), $0.100/1K (500k-5M), $0.083/1K (5M+)"
+        },
+        "routing": {
+          "unit": "request",
+          "tiers": [
+            {"from_requests": 0, "to_requests": 30000, "price_per_1000": 0.00},
+            {"from_requests": 30001, "to_requests": 5000000, "price_per_1000": 0.83},
+            {"from_requests": 5000001, "to_requests": 10000000, "price_per_1000": 0.66},
+            {"from_requests": 10000001, "to_requests": 0, "price_per_1000": 0.66}
+          ],
+          "free_tier": 0,
+          "notes": "Car Routing (Bicycle, Pedestrian) – Free (0-30k), $0.83/1K (30k-5M), $0.66/1K (5M-10M), Contact sales (10M+)"
+        },
+        "map_tiles_raster": {
+          "unit": "tile_load",
+          "tiers": [
+            {"from_requests": 0, "to_requests": 30000, "price_per_1000": 0.00},
+            {"from_requests": 30001, "to_requests": 5000000, "price_per_1000": 0.15},
+            {"from_requests": 5000001, "to_requests": 10000000, "price_per_1000": 0.12},
+            {"from_requests": 10000001, "to_requests": 0, "price_per_1000": 0.10}
+          ],
+          "free_tier": 0,
+          "notes": "Raster Tile – Free (0-30k), ~$0.15/1K (30k-5M), ~$0.12/1K (5M-10M), Contact sales (10M+)"
+        },
+        "map_tiles_vector_2d": {
+          "unit": "tile_load",
+          "tiers": [
+            {"from_requests": 0, "to_requests": 30000, "price_per_1000": 0.00},
+            {"from_requests": 30001, "to_requests": 5000000, "price_per_1000": 0.083},
+            {"from_requests": 5000001, "to_requests": 10000000, "price_per_1000": 0.066},
+            {"from_requests": 10000001, "to_requests": 0, "price_per_1000": 0.050}
+          ],
+          "free_tier": 0,
+          "notes": "Vector Tile – Free (0-30k), $0.083/1K (30k-5M), $0.066/1K (5M-10M), $0.050/1K (10M+)"
+        },
+        "map_tiles_vector_3d": {
+          "unit": "tile_load",
+          "tiers": [
+            {"from_requests": 0, "to_requests": 30000, "price_per_1000": 0.00},
+            {"from_requests": 30001, "to_requests": 5000000, "price_per_1000": 0.225},
+            {"from_requests": 5000001, "to_requests": 10000000, "price_per_1000": 0.180},
+            {"from_requests": 10000001, "to_requests": 0, "price_per_1000": 0.150}
+          ],
+          "free_tier": 0,
+          "notes": "Advanced Vector Tile – Free (0-30k), $0.225/1K (30k-5M), $0.180/1K (5M-10M), $0.150/1K (10M+)"
+        },
+        "static_maps": {
+          "unit": "request",
+          "tiers": [
+            {"from_requests": 0, "to_requests": 30000, "price_per_1000": 0.00},
+            {"from_requests": 30001, "to_requests": 5000000, "price_per_1000": 0.83},
+            {"from_requests": 5000001, "to_requests": 10000000, "price_per_1000": 0.66},
+            {"from_requests": 10000001, "to_requests": 0, "price_per_1000": 0.66}
+          ],
+          "free_tier": 0,
+          "notes": "Map Image (Static Maps) – Free (0-30k), $0.83/1K (30k-5M), $0.66/1K (5M-10M), Contact sales (10M+)"
+        },
+        "static_street_view": {
+          "unit": "request",
+          "supported": false,
+          "price_per_1000": null,
+          "free_tier": null,
+          "notes": "Not offered by HERE"
+        },
+        "distance_matrix": {
+          "unit": "request",
+          "tiers": [
+            {"from_requests": 0, "to_requests": 2500, "price_per_1000": 0.00},
+            {"from_requests": 2501, "to_requests": 200000, "price_per_1000": 5.50},
+            {"from_requests": 200001, "to_requests": 1000000, "price_per_1000": 4.40},
+            {"from_requests": 1000001, "to_requests": 0, "price_per_1000": 4.40}
+          ],
+          "free_tier": 0,
+          "notes": "Matrix Routing – Free (0-2.5k), $5.50/1K (2.5k-200k), $4.40/1K (200k-1M), Contact sales (1M+)"
+        },
+        "elevation": {
+          "unit": "request",
+          "supported": false,
+          "price_per_1000": null,
+          "free_tier": null,
+          "notes": "Not offered by HERE"
+        },
+        "aerial_view": {
+          "unit": "request",
+          "supported": false,
+          "price_per_1000": null,
+          "free_tier": null,
+          "notes": "Not offered by HERE"
+        }
+      }
+    }
+  }
+}

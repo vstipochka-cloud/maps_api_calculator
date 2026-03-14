@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Calculator - Find Your Best Provider</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">API Calculator</div>
+            <div class="nav-links">
+                <button class="nav-btn active" data-page="home">Home</button>
+                <button class="nav-btn" data-page="calculator">Calculator</button>
+                <button class="nav-btn" data-page="about">About</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Home Page -->
+    <section id="home" class="page active">
+        <div class="hero">
+            <div class="hero-content">
+                <h1>Find Your Best Mapping API Provider</h1>
+                <p>Compare pricing across Google Maps, Mapbox, and HERE Technologies</p>
+                <button class="cta-button" onclick="app.goToPage('calculator')">Start Calculator</button>
+            </div>
+        </div>
+
+        <div class="providers-section">
+            <h2>Supported Providers</h2>
+            <div class="providers-grid">
+                <div class="provider-card">
+                    <h3>Google Maps Platform</h3>
+                    <p class="price">$5.00 - $25.00/1K</p>
+                    <p class="desc">Industry leader with comprehensive APIs</p>
+                    <ul>
+                        <li>Geocoding</li>
+                        <li>Routing</li>
+                        <li>$300 trial credit</li>
+                    </ul>
+                </div>
+
+                <div class="provider-card">
+                    <h3>Mapbox</h3>
+                    <p class="price">$1.00 - $5.00/1K</p>
+                    <p class="desc">Modern APIs with volume discounts</p>
+                    <ul>
+                        <li>Geocoding</li>
+                        <li>Routing</li>
+                        <li>Vector Tiles</li>
+                    </ul>
+                </div>
+
+                <div class="provider-card best">
+                    <span class="badge">Best Value</span>
+                    <h3>HERE Technologies</h3>
+                    <p class="price">$0.75/1K</p>
+                    <p class="desc">Shared 250K free pool monthly</p>
+                    <ul>
+                        <li>Geocoding</li>
+                        <li>Routing</li>
+                        <li>250K free/month</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="api-types-section">
+            <h2>Supported API Types</h2>
+            <div class="api-grid">
+                <div class="api-tag">Geocoding</div>
+                <div class="api-tag">Routing</div>
+                <div class="api-tag">Map Tiles Raster</div>
+                <div class="api-tag">Map Tiles Vector 2D</div>
+                <div class="api-tag">Map Tiles Vector 3D</div>
+                <div class="api-tag">Static Maps</div>
+                <div class="api-tag">Street View</div>
+                <div class="api-tag">Distance Matrix</div>
+                <div class="api-tag">Elevation</div>
+                <div class="api-tag">Aerial View</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Calculator Page -->
+    <section id="calculator" class="page">
+        <div class="calculator-container">
+            <h2>Calculate Your API Costs</h2>
+            
+            <div class="calculator-form">
+                <div class="form-section">
+                    <h3>Step 1: Select APIs</h3>
+                    <p class="form-hint">Choose which APIs you'll use and enter monthly requests</p>
+                    
+                    <div id="apiSelectors" class="api-selectors">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Step 2: Additional Options</h3>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="disableNewCustomerCredit">
+                        <span>Disable new customer credit</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="disableFreeTier">
+                        <span>Disable free tier</span>
+                    </label>
+                </div>
+
+                <button class="calculate-button" onclick="app.calculateCosts()">
+                    Calculate Costs
+                </button>
+            </div>
+
+            <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                <div class="spinner"></div>
+                <p>Calculating...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Page -->
+    <section id="results" class="page">
+        <div class="results-container">
+            <div class="results-header">
+                <h2>Pricing Comparison Results</h2>
+                <button class="back-button" onclick="app.goToPage('calculator')">← Back to Calculator</button>
+            </div>
+
+            <div id="bestValueCard" class="best-value-card">
+                <!-- Populated by JavaScript -->
+            </div>
+
+            <h3 class="all-results-title">All Results</h3>
+            <div id="resultsGrid" class="results-grid">
+                <!-- Populated by JavaScript -->
+            </div>
+
+            <div class="summary-section">
+                <h3>Cost Summary</h3>
+                <div class="summary-table">
+                    <div class="summary-row header">
+                        <div>Provider</div>
+                        <div>Monthly Cost</div>
+                        <div>Per Request</div>
+                    </div>
+                    <div id="summaryRows">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Page -->
+    <section id="about" class="page">
+        <div class="about-container">
+            <h2>About This Calculator</h2>
+            
+            <div class="about-content">
+                <div class="about-section">
+                    <h3>How It Works</h3>
+                    <p>This calculator helps you compare the cost of using different mapping API providers. It takes into account:</p>
+                    <ul>
+                        <li><strong>Free Tiers:</strong> Monthly free requests included with each provider</li>
+                        <li><strong>Volume Discounts:</strong> Lower prices at higher volumes (e.g., Mapbox)</li>
+                        <li><strong>Shared Pools:</strong> HERE's 250K shared pool across all APIs</li>
+                        <li><strong>New Customer Credits:</strong> Google's $300 trial credit for new accounts</li>
+                    </ul>
+                </div>
+
+                <div class="about-section">
+                    <h3>Key Differences</h3>
+                    <div class="comparison-table">
+                        <div class="comp-row">
+                            <strong>Feature</strong>
+                            <strong>Google</strong>
+                            <strong>Mapbox</strong>
+                            <strong>HERE</strong>
+                        </div>
+                        <div class="comp-row">
+                            <span>Base Price</span>
+                            <span>$5-25/1K</span>
+                            <span>$1-5/1K</span>
+                            <span>$0.75/1K</span>
+                        </div>
+                        <div class="comp-row">
+                            <span>Free Tier</span>
+                            <span>25K/API</span>
+                            <span>50-100K/API</span>
+                            <span>250K shared</span>
+                        </div>
+                        <div class="comp-row">
+                            <span>Trial Credit</span>
+                            <span>$300</span>
+                            <span>None</span>
+                            <span>None</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="about-section">
+                    <h3>Pricing Model</h3>
+                    <p><strong>HERE Technologies</strong> uses a <strong>shared pool model</strong>:</p>
+                    <p>You get 250,000 free requests per month <strong>combined</strong> across all APIs, after which you pay $0.75 per 1,000 requests.</p>
+                    
+                    <p style="margin-top: 20px;"><strong>Google & Mapbox</strong> use <strong>individual free tiers</strong>:</p>
+                    <p>Each API type has its own free tier, and pricing varies by API.</p>
+                </div>
+
+                <div class="about-section">
+                    <h3>Technical Details</h3>
+                    <p>This calculator is built with:</p>
+                    <ul>
+                        <li>Backend: Go REST API (running on http://localhost:8080)</li>
+                        <li>Frontend: HTML/CSS/JavaScript (separate single-page app)</li>
+                        <li>Real pricing data from official provider websites (March 2026)</li>
+                        <li>CORS enabled for cross-origin requests</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="app.js"></script>
+</body>
+</html>
