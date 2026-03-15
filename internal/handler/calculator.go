@@ -14,9 +14,9 @@ type CalculatorHandler struct {
 	pricingData *domain.PricingData
 }
 
-func NewCalculatorHandler(pricing *domain.PricingData) *CalculatorHandler {
+func NewCalculatorHandler(converter usecase.CurrencyConverter, pricing *domain.PricingData) *CalculatorHandler {
 	return &CalculatorHandler{
-		calc:        usecase.NewCalculator(),
+		calc:        usecase.NewCalculator(converter),
 		pricingData: pricing,
 	}
 }

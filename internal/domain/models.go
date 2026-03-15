@@ -4,6 +4,7 @@ type CalculationRequest struct {
 	APIRequests              map[string]int `json:"api_requests"`
 	DisableNewCustomerCredit bool           `json:"disable_new_customer_credit"`
 	DisableFreeTier          bool           `json:"disable_free_tier"`
+	Currency                 string         `json:"currency"`
 }
 
 type PricingData struct {
@@ -53,12 +54,13 @@ type PricingTier struct {
 }
 
 type CalculationResult struct {
-	Provider  string                      `json:"provider"`
-	Name      string                      `json:"name"`
-	URL       string                      `json:"url"`
-	Cost      float64                     `json:"cost"`
-	Breakdown map[string]APICostBreakdown `json:"breakdown"`
-	Notes     string                      `json:"notes,omitempty"`
+	Provider      string                      `json:"provider"`
+	Name          string                      `json:"name"`
+	URL           string                      `json:"url"`
+	Cost          float64                     `json:"cost"`
+	ConvertedCost float64                     `json:"converted_cost"`
+	Breakdown     map[string]APICostBreakdown `json:"breakdown"`
+	Notes         string                      `json:"notes,omitempty"`
 }
 
 type APICostBreakdown struct {
@@ -67,11 +69,23 @@ type APICostBreakdown struct {
 	FreeTier       int     `json:"free_tier"`
 	BilledRequests int     `json:"billed_requests"`
 	Cost           float64 `json:"cost"`
+	ConvertedCost  float64 `json:"converted_cost"`
 }
 
 type CalculationResponse struct {
-	Results     []CalculationResult `json:"results"`
-	BestValue   string              `json:"best_value"`
-	TotalCost   float64             `json:"total_cost"`
-	CurrencyUSD string              `json:"currency"`
+	Results       []CalculationResult `json:"results"`
+	BestValue     string              `json:"best_value"`
+	TotalCost     float64             `json:"total_cost"`
+	BaseCurrency  string              `json:"base_currency"`
+	Currency      string              `json:"currency"`
+	ExchangeRate  float64             `json:"exchange_rate"`
+	ConvertedCost float64             `json:"converted_cost"`
+}
+
+type CurrencyConvertResp struct {
+	Result CurrencyResult `json:"result"`
+}
+
+type CurrencyResult struct {
+	Rub float64 `json:"RUB"`
 }

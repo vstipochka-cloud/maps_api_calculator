@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"math"
@@ -10,7 +11,8 @@ import (
 )
 
 const (
-	apiTypeNotSupported = "is not provided by %s"
+	apiTypeNotSupported  = "is not provided by %s"
+	usdToRubExchangeRate = 80.0 // Approximate exchange rate
 )
 
 var apiTypeNames = map[string]string{
@@ -30,14 +32,18 @@ type Calculator interface {
 	Calculate(req *domain.CalculationRequest, pricing *domain.PricingData) *domain.CalculationResponse
 }
 
-type CalculatorImpl struct{}
+type CalculatorImpl struct {
+	converter CurrencyConverter
+}
 
-func NewCalculator() Calculator {
-	return &CalculatorImpl{}
+func NewCalculator(c CurrencyConverter) Calculator {
+	return &CalculatorImpl{
+		converter: c,
+	}
 }
 
 func (c *CalculatorImpl) Calculate(req *domain.CalculationRequest, pricing *domain.PricingData) *domain.CalculationResponse {
-	slog.Debug("Starting calculation", "providers_count", len(pricing.Providers), "api_requests_count", len(req.APIRequests), "disable_free_tier", req.DisableFreeTier)
+	slog.Debug("Starting calculation", "providers_count", len(pricing.Providers), "api_requests_count", len(req.APIRequests), "disable_free_tier", req.DisableFreeTier, "currency", req.Currency)
 	results := make([]domain.CalculationResult, 0, len(pricing.Providers))
 
 	providersWithoutApi := []domain.CalculationResult{}
@@ -63,12 +69,50 @@ func (c *CalculatorImpl) Calculate(req *domain.CalculationRequest, pricing *doma
 		slog.Info("Best value determined", "provider", bestValue, "cost", results[0].Cost)
 	}
 
-	return &domain.CalculationResponse{
-		Results:     append(results, providersWithoutApi...),
-		BestValue:   bestValue,
-		TotalCost:   calculateTotalCost(results),
-		CurrencyUSD: pricing.Metadata.Currency,
+	totalCost := calculateTotalCost(results)
+
+	// Apply currency conversion if needed
+	exchangeRate := 1.0
+	if req.Currency == "RUB" {
+		rate, err := c.converter.Convert(context.Background(), req.Currency)
+		if err != nil {
+			slog.Error("failed to convert", slog.Any("error", err))
+			exchangeRate = usdToRubExchangeRate
+		} else {
+			exchangeRate = rate
+		}
+		// Convert all results
+		for i := range results {
+			results[i].ConvertedCost = results[i].Cost * exchangeRate
+			// Also convert breakdown
+			for apiType, breakdown := range results[i].Breakdown {
+				breakdown.ConvertedCost = breakdown.Cost * exchangeRate
+				results[i].Breakdown[apiType] = breakdown
+			}
+		}
+		// Convert provided without API results
+		for i := range providersWithoutApi {
+			providersWithoutApi[i].ConvertedCost = providersWithoutApi[i].Cost * exchangeRate
+			for apiType, breakdown := range providersWithoutApi[i].Breakdown {
+				breakdown.ConvertedCost = breakdown.Cost * exchangeRate
+				providersWithoutApi[i].Breakdown[apiType] = breakdown
+			}
+		}
 	}
+
+	response := &domain.CalculationResponse{
+		Results:       append(results, providersWithoutApi...),
+		BestValue:     bestValue,
+		TotalCost:     totalCost,
+		BaseCurrency:  "USD",
+		Currency:      req.Currency,
+		ExchangeRate:  exchangeRate,
+		ConvertedCost: totalCost * exchangeRate,
+	}
+
+	slog.Debug("Calculation complete", "currency", response.Currency, "exchange_rate", response.ExchangeRate)
+
+	return response
 }
 
 func (c *CalculatorImpl) calculateProvider(
@@ -193,8 +237,6 @@ func (c *CalculatorImpl) calculateProvider(
 		totalCost = 0
 	}
 
-	totalCost = math.Ceil(totalCost)
-
 	if disableFreeTier {
 		notes = "Free tier disabled"
 	}
@@ -306,7 +348,7 @@ func calculateTotalCost(results []domain.CalculationResult) float64 {
 }
 
 func roundCost(cost float64) float64 {
-	return float64(int(cost*100)) / 100.0
+	return math.Ceil(float64(int(cost*100)) / 100.0)
 }
 
 func formatAPITypeName(apiType string) string {

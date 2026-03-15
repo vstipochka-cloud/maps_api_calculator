@@ -11,7 +11,12 @@ import (
 	"calculator_api/internal/domain"
 	"calculator_api/internal/handler"
 	"calculator_api/internal/pricing"
+	"calculator_api/internal/usecase"
+
+	"github.com/joho/godotenv"
 )
+
+const providerURL = "https://api.fastforex.io"
 
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
@@ -25,7 +30,9 @@ func main() {
 		log.Fatalf("Failed to get current working directory: %v", err)
 	}
 	slog.Info("Application starting", "cwd", cwd)
-
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("failed to load env environment err=%s", err.Error())
+	}
 	// Пробуем найти pricing.json в разных местах
 	pricingPaths := []string{
 		filepath.Join(cwd, "cmd/calculator/pricing/pricing.json"),
@@ -60,7 +67,13 @@ func main() {
 		slog.Debug("Loaded provider", "provider_id", providerID, "name", provider.Name, "apis_count", len(provider.APIs))
 	}
 
-	calcHandler := handler.NewCalculatorHandler(pricingData)
+	apiKey := os.Getenv("API_KEY")
+	if apiKey == "" {
+		log.Fatalf("empty api key")
+	}
+
+	converter := usecase.NewCurrencyConverter(providerURL, apiKey, *logger)
+	calcHandler := handler.NewCalculatorHandler(*converter, pricingData)
 
 	// Setup middleware wrapper for CORS
 	withCORS := func(next http.HandlerFunc) http.HandlerFunc {
