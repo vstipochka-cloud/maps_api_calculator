@@ -30,10 +30,11 @@ func main() {
 		log.Fatalf("Failed to get current working directory: %v", err)
 	}
 	slog.Info("Application starting", "cwd", cwd)
+
 	if err := godotenv.Load(); err != nil {
-		log.Fatalf("failed to load env environment err=%s", err.Error())
+		log.Fatal("failed to load env file")
 	}
-	// Пробуем найти pricing.json в разных местах
+
 	pricingPaths := []string{
 		filepath.Join(cwd, "cmd/calculator/pricing/pricing.json"),
 		"cmd/calculator/pricing/pricing.json",

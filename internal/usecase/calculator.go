@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"math"
 	"sort"
+	"strings"
 
 	"calculator_api/internal/domain"
 )
@@ -119,6 +120,26 @@ func (c *CalculatorImpl) calculateProvider(
 	providerID string, providerPricing domain.ProviderPricing,
 	apiRequests map[string]int, disableNewCustomerCredit bool, disableFreeTier bool,
 ) domain.CalculationResult {
+	// Check if ANY API has its own license tiers (for providers like Яндекс with per-API pricing)
+	hasPerAPIPricing := false
+	for _, apiPricing := range providerPricing.APIs {
+		if len(apiPricing.LicenseTiers) > 0 {
+			hasPerAPIPricing = true
+			break
+		}
+	}
+
+	// Handle annual license pricing with per-API tiers (e.g., Яндекс Карты)
+	if hasPerAPIPricing {
+		return c.calculatePerAPILicenseProvider(providerID, providerPricing, apiRequests)
+	}
+
+	// Handle provider-level annual license pricing (e.g., older Яндекс structure)
+	if (providerPricing.PricingModel == "annual_license" || providerPricing.PricingModel == "annual_license_with_overage" || providerPricing.PricingModel == "annual_dau_license_with_overage") && len(providerPricing.LicenseTiers) > 0 {
+		return c.calculateAnnualLicenseProvider(providerID, providerPricing, apiRequests)
+	}
+
+	// Standard pay-as-you-go model (default)
 	breakdown := make(map[string]domain.APICostBreakdown)
 	totalCost := 0.0
 	freeCredit := 0.0
@@ -338,6 +359,233 @@ func calculateCostWithTiers(billedRequests int, tiers []domain.PricingTier) floa
 	}
 
 	return totalCost
+}
+
+// calculatePerAPILicenseProvider handles providers where each API has its own license tiers (e.g., Яндекс Карты)
+func (c *CalculatorImpl) calculatePerAPILicenseProvider(
+	providerID string, providerPricing domain.ProviderPricing, apiRequests map[string]int,
+) domain.CalculationResult {
+	breakdown := make(map[string]domain.APICostBreakdown)
+	totalCost := 0.0
+	notes := ""
+
+	exchangeRate, err := c.converter.Convert(context.Background(), "RUB")
+	if err != nil {
+		slog.Warn("Failed to get exchange rate, using fallback", "error", err)
+		exchangeRate = 95.0
+	}
+
+	for apiType, requestCount := range apiRequests {
+		if apiPricing, exists := providerPricing.APIs[apiType]; exists {
+			if !apiPricing.Supported {
+				notes += fmt.Sprintf("%s not supported; ", formatAPITypeName(apiType))
+				continue
+			}
+
+			if len(apiPricing.LicenseTiers) == 0 {
+				notes += fmt.Sprintf("%s has no pricing; ", formatAPITypeName(apiType))
+				continue
+			}
+
+			// Calculate daily requests for this API
+			dailyRequests := requestCount / 30
+			if requestCount%30 > 0 {
+				dailyRequests++
+			}
+
+			// Find best tier for this API
+			var bestTier *domain.LicenseTier
+			bestCost := math.MaxFloat64
+
+			for i := range apiPricing.LicenseTiers {
+				tier := &apiPricing.LicenseTiers[i]
+
+				// Cost of full license for this tier (monthly)
+				cost1 := tier.AnnualPriceRub / exchangeRate / 12.0
+
+				// Cost if we use lower tier + overage
+				var cost2 float64 = math.MaxFloat64
+				if tier.OveragePerRub > 0 && dailyRequests > tier.DailyLimit {
+					overageDaily := dailyRequests - tier.DailyLimit
+					overageMonthly := overageDaily * 30
+					overageRubMonthly := (float64(overageMonthly) / 1000.0) * tier.OveragePerRub
+					cost2 = cost1 + (overageRubMonthly / exchangeRate)
+				}
+
+				var tierCost float64
+				if cost2 > 0 && cost2 < cost1 {
+					tierCost = cost2
+				} else {
+					tierCost = cost1
+				}
+
+				// Select this tier if it fits the daily limit or if it's the only option with overage
+				if (tier.DailyLimit >= dailyRequests || tier.OveragePerRub > 0) && tierCost < bestCost {
+					bestTier = tier
+					bestCost = tierCost
+				}
+			}
+
+			if bestTier == nil && len(apiPricing.LicenseTiers) > 0 {
+				bestTier = &apiPricing.LicenseTiers[len(apiPricing.LicenseTiers)-1]
+				bestCost = bestTier.AnnualPriceRub / exchangeRate / 12.0
+			}
+
+			if bestTier != nil {
+				totalCost += bestCost
+				displayName := formatAPITypeName(apiType)
+				if apiPricing.DisplayName != "" {
+					displayName = apiPricing.DisplayName
+				}
+
+				slog.Debug("Per-API cost calculated",
+					"provider_id", providerID,
+					"api_type", apiType,
+					"display_name", displayName,
+					"daily_requests", dailyRequests,
+					"tier_daily_limit", bestTier.DailyLimit,
+					"monthly_cost_usd", bestCost,
+				)
+
+				breakdown[apiType] = domain.APICostBreakdown{
+					Requests:    requestCount,
+					DisplayName: displayName,
+					Cost:        bestCost,
+				}
+			}
+		} else {
+			notes += fmt.Sprintf("%s not supported; ", formatAPITypeName(apiType))
+		}
+	}
+
+	notes = strings.TrimRight(notes, "; ")
+
+	return domain.CalculationResult{
+		Provider:  providerID,
+		Name:      providerPricing.Name,
+		URL:       providerPricing.URL,
+		Cost:      roundCost(totalCost),
+		Breakdown: breakdown,
+		Notes:     notes,
+	}
+}
+
+func (c *CalculatorImpl) calculateAnnualLicenseProvider(
+	providerID string, providerPricing domain.ProviderPricing, apiRequests map[string]int,
+) domain.CalculationResult {
+	breakdown := make(map[string]domain.APICostBreakdown)
+
+	totalMonthlyRequests := 0
+	for _, count := range apiRequests {
+		totalMonthlyRequests += count
+	}
+
+	dailyRequestsNeeded := totalMonthlyRequests / 30
+	if totalMonthlyRequests%30 > 0 {
+		dailyRequestsNeeded++
+	}
+
+	slog.Debug("Annual license calculation",
+		"provider_id", providerID,
+		"monthly_requests", totalMonthlyRequests,
+		"daily_requests_needed", dailyRequestsNeeded,
+	)
+
+	exchangeRate, err := c.converter.Convert(context.Background(), "RUB")
+	if err != nil {
+		slog.Warn("Failed to get exchange rate, using fallback", "error", err)
+		exchangeRate = 95.0
+	}
+
+	var bestOption *domain.LicenseTier
+	bestCost := math.MaxFloat64
+	var bestNote string
+
+	for i := range providerPricing.LicenseTiers {
+		tier := &providerPricing.LicenseTiers[i]
+
+		cost1 := tier.AnnualPriceRub / exchangeRate / 12.0
+		var option1Note string
+
+		var cost2 float64 = math.MaxFloat64
+		var option2Note string
+
+		if tier.OveragePerRub > 0 && dailyRequestsNeeded > tier.DailyLimit {
+			overageDaily := dailyRequestsNeeded - tier.DailyLimit
+			overageMonthly := overageDaily * 30
+			overageRubMonthly := (float64(overageMonthly) / 1000.0) * tier.OveragePerRub
+			cost2 = cost1 + (overageRubMonthly / exchangeRate)
+			option2Note = fmt.Sprintf("Лицензия ($%.2f) + переплата за %d запросов/день ($%.2f) = $%.2f",
+				cost1, overageDaily, overageRubMonthly/exchangeRate, cost2)
+			option1Note = fmt.Sprintf("Полная лицензия до %d запросов/день = $%.2f", tier.DailyLimit, cost1)
+		}
+
+		var tierCost float64
+		var tierNote string
+
+		if cost2 > 0 && cost2 < cost1 {
+			tierCost = cost2
+			tierNote = option2Note
+		} else {
+			tierCost = cost1
+			tierNote = option1Note
+		}
+
+		if (tier.DailyLimit >= dailyRequestsNeeded || tier.OveragePerRub > 0) && tierCost < bestCost {
+			bestOption = tier
+			bestCost = tierCost
+			bestNote = tierNote
+		}
+	}
+
+	if bestOption == nil && len(providerPricing.LicenseTiers) > 0 {
+		bestOption = &providerPricing.LicenseTiers[len(providerPricing.LicenseTiers)-1]
+		bestCost = bestOption.AnnualPriceRub / exchangeRate / 12.0
+	}
+
+	if bestOption == nil {
+		return domain.CalculationResult{
+			Provider:  providerID,
+			Name:      providerPricing.Name,
+			URL:       providerPricing.URL,
+			Cost:      0,
+			Breakdown: breakdown,
+			Notes:     "No pricing tiers available",
+		}
+	}
+
+	slog.Debug("License tier selected",
+		"provider_id", providerID,
+		"daily_limit", bestOption.DailyLimit,
+		"monthly_cost_usd", bestCost,
+	)
+
+	notes := fmt.Sprintf("Annual license ₽%.0f/year: %s", bestOption.AnnualPriceRub, bestNote)
+
+	for apiType, requestCount := range apiRequests {
+		if apiPricing, exists := providerPricing.APIs[apiType]; exists {
+			if apiPricing.Supported {
+				breakdown[apiType] = domain.APICostBreakdown{
+					Requests:       requestCount,
+					UnitPrice:      0,
+					FreeTier:       0,
+					BilledRequests: 0,
+					Cost:           0,
+				}
+			} else {
+				notes = fmt.Sprintf("%s not supported; %s", formatAPITypeName(apiType), notes)
+			}
+		}
+	}
+
+	return domain.CalculationResult{
+		Provider:  providerID,
+		Name:      providerPricing.Name,
+		URL:       providerPricing.URL,
+		Cost:      roundCost(bestCost),
+		Breakdown: breakdown,
+		Notes:     notes,
+	}
 }
 
 func calculateTotalCost(results []domain.CalculationResult) float64 {

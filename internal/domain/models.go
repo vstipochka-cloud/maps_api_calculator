@@ -20,9 +20,18 @@ type PricingData struct {
 type ProviderPricing struct {
 	Name            string                `json:"name"`
 	URL             string                `json:"url"`
+	PricingModel    string                `json:"pricing_model"` // "pay_as_you_go" or "annual_license"
 	FreeCredit      *FreeCreditInfo       `json:"free_credit"`
 	MonthlyFreeTier *MonthlyFreeTierInfo  `json:"monthly_free_tier"`
+	LicenseTiers    []LicenseTier         `json:"license_tiers"` // For annual_license model
 	APIs            map[string]APIPricing `json:"apis"`
+}
+
+type LicenseTier struct {
+	DailyLimit     int     `json:"daily_limit"`
+	AnnualPriceRub float64 `json:"annual_price_rub"`
+	OveragePerRub  float64 `json:"overage_per_1000_rub"` // Cost per 1000 units above limit
+	Name           string  `json:"name"`
 }
 
 type FreeCreditInfo struct {
@@ -41,8 +50,12 @@ type MonthlyFreeTierInfo struct {
 
 type APIPricing struct {
 	Unit         string        `json:"unit"`
+	Supported    bool          `json:"supported"`
+	DisplayName  string        `json:"display_name,omitempty"`   // Красивое название для отображения
+	PricingModel string        `json:"pricing_model,omitempty"`  // Для API с собственной моделью (annual_license_with_overage, etc)
+	LicenseTiers []LicenseTier `json:"license_tiers,omitempty"`  // Для API с лицензионной моделью
 	PricePer1000 float64       `json:"price_per_1000,omitempty"` // deprecated, use Tiers
-	Tiers        []PricingTier `json:"tiers,omitempty"`          // NEW: volume-based pricing
+	Tiers        []PricingTier `json:"tiers,omitempty"`          // volume-based pricing
 	FreeTier     int           `json:"free_tier"`
 }
 
@@ -65,6 +78,7 @@ type CalculationResult struct {
 
 type APICostBreakdown struct {
 	Requests       int     `json:"requests"`
+	DisplayName    string  `json:"display_name,omitempty"` // Красивое название для фронтенда
 	UnitPrice      float64 `json:"unit_price"`
 	FreeTier       int     `json:"free_tier"`
 	BilledRequests int     `json:"billed_requests"`

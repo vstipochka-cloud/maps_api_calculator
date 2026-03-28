@@ -20,6 +20,7 @@
     "google_maps": {
       "name": "Google Maps Platform",
       "url": "https://cloud.google.com/maps-platform",
+      "pricing_model": "pay_as_you_go",
       "tiers": ["Essentials", "Pro", "Enterprise"],
       "free_credit": {
         "type": "one_time",
@@ -105,6 +106,7 @@
     "mapbox": {
       "name": "Mapbox",
       "url": "https://www.mapbox.com/pricing",
+      "pricing_model": "pay_as_you_go",
       "free_credit": null,
       "monthly_free_tier": null,
       "apis": {
@@ -215,6 +217,7 @@
     "here": {
       "name": "HERE Technologies",
       "url": "https://www.here.com/pricing",
+      "pricing_model": "pay_as_you_go",
       "free_credit": null,
       "monthly_free_tier": null,
       "apis": {
@@ -314,6 +317,111 @@
           "price_per_1000": null,
           "free_tier": null,
           "notes": "Not offered by HERE"
+        }
+      }
+    },
+    "yandex": {
+      "name": "Яндекс Карты",
+      "url": "https://yandex.ru/dev/maps/",
+      "pricing_model": "annual_license_with_overage",
+      "free_credit": null,
+      "monthly_free_tier": null,
+      "license_tiers": [],
+      "apis": {
+        "geocoding": {
+          "unit": "request",
+          "supported": true,
+          "display_name": "JavaScript API + Геокодер",
+          "pricing_model": "annual_license_with_overage",
+          "license_tiers": [
+            {"daily_limit": 1000, "annual_price_rub": 226200, "overage_per_1000_rub": 390, "name": "Базовый"},
+            {"daily_limit": 10000, "annual_price_rub": 678600, "overage_per_1000_rub": 195, "name": "Профи"},
+            {"daily_limit": 25000, "annual_price_rub": 1281800, "overage_per_1000_rub": 163, "name": "Бизнес"},
+            {"daily_limit": 50000, "annual_price_rub": 2210000, "overage_per_1000_rub": 163, "name": "Премиум"},
+            {"daily_limit": 100000, "annual_price_rub": 2652000, "overage_per_1000_rub": 163, "name": "Энтерпрайз"}
+          ],
+          "free_tier": 0
+        },
+        "static_maps": {
+          "unit": "request",
+          "supported": true,
+          "display_name": "Static API + Геосаджест + Локатор",
+          "pricing_model": "annual_license_with_overage",
+          "license_tiers": [
+            {"daily_limit": 10000, "annual_price_rub": 208800, "overage_per_1000_rub": 360, "name": "Базовый"},
+            {"daily_limit": 100000, "annual_price_rub": 626400, "overage_per_1000_rub": 180, "name": "Профи"},
+            {"daily_limit": 250000, "annual_price_rub": 1183200, "overage_per_1000_rub": 150, "name": "Бизнес"},
+            {"daily_limit": 500000, "annual_price_rub": 2040000, "overage_per_1000_rub": 150, "name": "Премиум"},
+            {"daily_limit": 1000000, "annual_price_rub": 2448000, "overage_per_1000_rub": 150, "name": "Энтерпрайз"}
+          ],
+          "free_tier": 0
+        },
+        "distance_matrix": {
+          "unit": "request",
+          "supported": true,
+          "display_name": "Матрица расстояний",
+          "pricing_model": "annual_license_with_overage",
+          "license_tiers": [
+            {"daily_limit": 1000, "annual_price_rub": 195000, "overage_per_1000_rub": 390, "name": "Базовый"},
+            {"daily_limit": 10000, "annual_price_rub": 585000, "overage_per_1000_rub": 195, "name": "Профи"},
+            {"daily_limit": 25000, "annual_price_rub": 1105000, "overage_per_1000_rub": 163, "name": "Бизнес"},
+            {"daily_limit": 50000, "annual_price_rub": 1820000, "overage_per_1000_rub": 163, "name": "Премиум"},
+            {"daily_limit": 100000, "annual_price_rub": 2184000, "overage_per_1000_rub": 163, "name": "Энтерпрайз"}
+          ],
+          "free_tier": 0
+        },
+        "map_tiles_vector_2d": {
+          "unit": "dau",
+          "supported": true,
+          "display_name": "MapKit SDK (мобильные)",
+          "pricing_model": "annual_dau_license_with_overage",
+          "license_tiers": [
+            {"daily_limit": 5000, "annual_price_rub": 195000, "overage_per_1000_rub": 269, "name": "Базовый"},
+            {"daily_limit": 20000, "annual_price_rub": 585000, "overage_per_1000_rub": 195, "name": "Профи"},
+            {"daily_limit": 50000, "annual_price_rub": 1105000, "overage_per_1000_rub": 195, "name": "Бизнес"},
+            {"daily_limit": 100000, "annual_price_rub": 1820000, "overage_per_1000_rub": 78, "name": "Премиум"},
+            {"daily_limit": 300000, "annual_price_rub": 2184000, "overage_per_1000_rub": 59, "name": "Энтерпрайз"}
+          ],
+          "free_tier": 0
+        },
+        "routing": {
+          "unit": "request",
+          "supported": true,
+          "display_name": "Поиск по организациям",
+          "pricing_model": "annual_license_with_overage",
+          "license_tiers": [
+            {"daily_limit": 1000, "annual_price_rub": 226200, "overage_per_1000_rub": 390, "name": "Базовый"},
+            {"daily_limit": 10000, "annual_price_rub": 678600, "overage_per_1000_rub": 195, "name": "Профи"},
+            {"daily_limit": 25000, "annual_price_rub": 1281800, "overage_per_1000_rub": 163, "name": "Бизнес"},
+            {"daily_limit": 50000, "annual_price_rub": 2210000, "overage_per_1000_rub": 163, "name": "Премиум"},
+            {"daily_limit": 100000, "annual_price_rub": 2652000, "overage_per_1000_rub": 163, "name": "Энтерпрайз"}
+          ],
+          "free_tier": 0
+        },
+        "map_tiles_raster": {
+          "unit": "request",
+          "supported": false,
+          "free_tier": 0
+        },
+        "map_tiles_vector_3d": {
+          "unit": "request",
+          "supported": false,
+          "free_tier": 0
+        },
+        "static_street_view": {
+          "unit": "request",
+          "supported": false,
+          "free_tier": 0
+        },
+        "elevation": {
+          "unit": "request",
+          "supported": false,
+          "free_tier": 0
+        },
+        "aerial_view": {
+          "unit": "request",
+          "supported": false,
+          "free_tier": 0
         }
       }
     }

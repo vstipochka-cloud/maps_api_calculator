@@ -274,9 +274,10 @@ const app = {
                 breakdownHTML = '<div class="breakdown"><strong>Breakdown:</strong>';
                 for (const [apiType, breakdown] of Object.entries(result.breakdown)) {
                     const breakdownCost = data.currency === 'RUB' ? (breakdown.converted_cost || 0) : breakdown.cost;
+                    const displayName = breakdown.display_name || this.formatAPIName(apiType);
                     breakdownHTML += `
                         <div class="breakdown-item">
-                            <span>${this.formatAPIName(apiType)}</span>
+                            <span>${displayName}</span>
                             <span>${this.formatCurrency(breakdownCost, data.currency)}</span>
                         </div>
                     `;
@@ -315,7 +316,7 @@ const app = {
             row.className = 'summary-row';
             
             const cost = data.currency === 'RUB' ? result.converted_cost : result.cost;
-            const perRequest = totalRequests > 0 ? (cost / totalRequests * 1000).toFixed(6) : '0.00';
+            const perRequest = totalRequests > 0 ? (cost / totalRequests * 1000).toFixed(2) : '0.00';
             
             const currencySymbol = data.currency === 'RUB' ? 'руб' : '$';
 
@@ -332,12 +333,11 @@ const app = {
     // Format currency
     formatCurrency(amount, currency = 'USD') {
         if (currency === 'RUB') {
-            return new Intl.NumberFormat('ru-RU', {
-                style: 'currency',
-                currency: 'RUB',
+            const formatted = new Intl.NumberFormat('ru-RU', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             }).format(amount);
+            return '₽ ' + formatted;
         }
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
