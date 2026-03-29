@@ -32,7 +32,8 @@ func main() {
 	slog.Info("Application starting", "cwd", cwd)
 
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("failed to load env file")
+		log.Print("failed to load env file")
+
 	}
 
 	pricingPaths := []string{
@@ -70,7 +71,8 @@ func main() {
 
 	apiKey := os.Getenv("API_KEY")
 	if apiKey == "" {
-		log.Fatalf("empty api key")
+		apiKey = "fdd9fb5814-a9953c3d02-tbw6rr"
+		log.Print("empty api key")
 	}
 
 	converter := usecase.NewCurrencyConverter(providerURL, apiKey, *logger)
@@ -92,18 +94,22 @@ func main() {
 		}
 	}
 
-	// API endpoints only (no frontend serving)
+	// API endpoints
 	http.HandleFunc("/health", handler.LoggingMiddleware("health", withCORS(calcHandler.HealthHandler)))
 	http.HandleFunc("/providers", handler.LoggingMiddleware("providers", withCORS(calcHandler.ProvidersHandler)))
 	http.HandleFunc("/calculate", handler.LoggingMiddleware("calculate", withCORS(calcHandler.CalculateHandler)))
+
+	// Serve frontend static files (fallback for all other routes)
+	fs := http.FileServer(http.Dir("./frontend"))
+	http.Handle("/", fs)
 
 	port := ":8080"
 	fmt.Printf("Starting calculator API server on http://localhost:8080\n")
 	fmt.Printf("Available endpoints:\n")
 	fmt.Printf("  GET  /health      - Check server status\n")
 	fmt.Printf("  GET  /providers   - List available providers and API types\n")
-	fmt.Printf("  POST /calculate   - Calculate API costs\n\n")
-	fmt.Printf("Frontend: Run 'cd frontend && npm start' (or use live server)\n\n")
+	fmt.Printf("  POST /calculate   - Calculate API costs\n")
+	fmt.Printf("  GET  /             - Frontend (index.html and static files)\n\n")
 
 	slog.Info("Server starting", "port", port)
 

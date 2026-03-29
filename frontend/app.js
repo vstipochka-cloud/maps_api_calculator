@@ -1,6 +1,13 @@
 const app = {
-    // Configuration - Backend API running on localhost:8080
-    apiBaseURL: 'http://localhost:8080',
+    // Configuration - Backend API URL (dynamic for production support)
+    get apiBaseURL() {
+        // For localhost/development - use port 8080
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            return 'http://localhost:8080';
+        }
+        // For production - use same host as frontend (Render, etc)
+        return window.location.origin;
+    },
     currentResults: null,
     apiTypes: [],
     providers: [],

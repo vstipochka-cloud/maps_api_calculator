@@ -1,0 +1,13 @@
+.git
+.gitignore
+.env
+node_modules
+.DS_Store
+*.log
+.vscode
+.idea
+*.swp
+*.swo
+README.md
+calculator
+cmd/calculator/calculator
