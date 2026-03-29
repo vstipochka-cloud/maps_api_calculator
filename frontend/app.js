@@ -168,6 +168,34 @@ const app = {
                 this.calculateCosts();
             }
         });
+        
+        // Update total elements when matrix params change
+        const originsInput = document.getElementById('originsCount');
+        const destinationsInput = document.getElementById('destinationsCount');
+        
+        if (originsInput && destinationsInput) {
+            const updateTotalElements = () => this.updateTotalElements();
+            originsInput.addEventListener('change', updateTotalElements);
+            destinationsInput.addEventListener('change', updateTotalElements);
+            originsInput.addEventListener('input', updateTotalElements);
+            destinationsInput.addEventListener('input', updateTotalElements);
+        }
+    },
+    
+    // Update total elements display
+    updateTotalElements() {
+        const distanceMatrixCount = document.getElementById('count-distance_matrix');
+        const originsInput = document.getElementById('originsCount');
+        const destinationsInput = document.getElementById('destinationsCount');
+        
+        if (!distanceMatrixCount || !originsInput || !destinationsInput) return;
+        
+        const matrixRequests = parseInt(distanceMatrixCount.value) || 0;
+        const origins = parseInt(originsInput.value) || 0;
+        const destinations = parseInt(destinationsInput.value) || 0;
+        
+        const totalElements = matrixRequests * origins * destinations;
+        document.getElementById('totalElements').textContent = totalElements.toLocaleString();
     },
 
     // Calculate costs
@@ -198,6 +226,25 @@ const app = {
         const disableNewCustomerCredit = document.getElementById('disableNewCustomerCredit').checked;
         const disableFreeTier = document.getElementById('disableFreeTier').checked;
         const currency = document.getElementById('currencySelector').value;
+        
+        // Get matrix parameters if distance_matrix is selected
+        let matrixParams = null;
+        if (apiRequests.hasOwnProperty('distance_matrix')) {
+            const originsCount = parseInt(document.getElementById('originsCount').value) || 0;
+            const destinationsCount = parseInt(document.getElementById('destinationsCount').value) || 0;
+            
+            if (originsCount > 0 && destinationsCount > 0) {
+                matrixParams = {
+                    origins_count: originsCount,
+                    destinations_count: destinationsCount
+                };
+                console.log('Matrix params:', matrixParams);
+            } else {
+                alert('Distance matrix requires origins_count and destinations_count to be greater than 0');
+                document.getElementById('loadingSpinner').style.display = 'none';
+                return;
+            }
+        }
 
         // Show loading
         document.getElementById('loadingSpinner').style.display = 'block';
@@ -207,17 +254,24 @@ const app = {
         console.log('Currency:', currency);
 
         // Make API call
+        const requestBody = {
+            api_requests: apiRequests,
+            disable_new_customer_credit: disableNewCustomerCredit,
+            disable_free_tier: disableFreeTier,
+            currency: currency
+        };
+        
+        // Add matrix_params if present
+        if (matrixParams) {
+            requestBody.matrix_params = matrixParams;
+        }
+        
         fetch(`${this.apiBaseURL}/calculate`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                api_requests: apiRequests,
-                disable_new_customer_credit: disableNewCustomerCredit,
-                disable_free_tier: disableFreeTier,
-                currency: currency
-            })
+            body: JSON.stringify(requestBody)
         })
         .then(response => {
             if (!response.ok) {

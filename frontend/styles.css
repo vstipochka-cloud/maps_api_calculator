@@ -643,3 +643,70 @@ h3 {
         grid-template-columns: 1fr;
     }
 }
+
+/* Matrix Parameters Section */
+.matrix-params {
+    background-color: #f0f8ff;
+    border: 1px solid #bde0ff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+}
+
+.matrix-params .form-group {
+    margin-bottom: 1rem;
+}
+
+.matrix-params label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.matrix-params label span {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.matrix-params label small {
+    display: block;
+    color: var(--text-light);
+    font-weight: normal;
+    font-size: 0.875rem;
+}
+
+.matrix-params input[type="number"] {
+    width: 100%;
+    padding: 0.75rem;
+    padding-right: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.matrix-params input[type="number"]:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.info-box {
+    background-color: white;
+    border-left: 4px solid #3b82f6;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-top: 1rem;
+}
+
+.info-box p {
+    margin: 0.5rem 0;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.info-box small {
+    color: var(--text-light);
+    font-size: 0.875rem;
+}

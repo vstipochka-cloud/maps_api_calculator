@@ -51,7 +51,7 @@ func (c *CalculatorImpl) Calculate(req *domain.CalculationRequest, pricing *doma
 
 	for providerID, providerPricing := range pricing.Providers {
 		slog.Debug("Calculating for provider", "provider_id", providerID, "provider_name", providerPricing.Name)
-		result := c.calculateProvider(providerID, providerPricing, req.APIRequests, req.DisableNewCustomerCredit, req.DisableFreeTier)
+		result := c.calculateProvider(providerID, providerPricing, req.APIRequests, req.MatrixParams, req.DisableNewCustomerCredit, req.DisableFreeTier)
 		if len(result.Breakdown) != len(req.APIRequests) {
 			providersWithoutApi = append(providersWithoutApi, result)
 			continue
@@ -118,7 +118,7 @@ func (c *CalculatorImpl) Calculate(req *domain.CalculationRequest, pricing *doma
 
 func (c *CalculatorImpl) calculateProvider(
 	providerID string, providerPricing domain.ProviderPricing,
-	apiRequests map[string]int, disableNewCustomerCredit bool, disableFreeTier bool,
+	apiRequests map[string]int, matrixParams *domain.MatrixParams, disableNewCustomerCredit bool, disableFreeTier bool,
 ) domain.CalculationResult {
 	// Check if ANY API has its own license tiers (for providers like Яндекс with per-API pricing)
 	hasPerAPIPricing := false
@@ -190,14 +190,26 @@ func (c *CalculatorImpl) calculateProvider(
 			// For others: calculate with free tier
 			useIndividualFreeTier := !hasSharedPool && !disableFreeTier
 
+			// Calculate actual billable requests (might be matrix elements)
+			billableRequests := requestCount
+			if apiPricing.CalculateMatrixElements && apiType == "distance_matrix" {
+				billableRequests = calculateMatrixElements(requestCount, matrixParams)
+				slog.Debug("Using matrix element calculation",
+					"provider_id", providerID,
+					"api_type", apiType,
+					"input_requests", requestCount,
+					"billable_requests", billableRequests,
+				)
+			}
+
 			if hasSharedPool {
 				// Calculate raw cost for shared pool calculation
-				rawCost := float64(requestCount) * apiPricing.PricePer1000 / 1000.0
+				rawCost := float64(billableRequests) * apiPricing.PricePer1000 / 1000.0
 				rawCosts[apiType] = rawCost
-				costBreakdown := calculateAPICost(requestCount, apiPricing, false)
+				costBreakdown := calculateAPICost(billableRequests, apiPricing, false)
 				breakdown[apiType] = costBreakdown
 			} else {
-				costBreakdown := calculateAPICost(requestCount, apiPricing, useIndividualFreeTier)
+				costBreakdown := calculateAPICost(billableRequests, apiPricing, useIndividualFreeTier)
 				breakdown[apiType] = costBreakdown
 				totalCost += costBreakdown.Cost
 			}
@@ -277,6 +289,26 @@ func (c *CalculatorImpl) calculateProvider(
 		Breakdown: breakdown,
 		Notes:     notes,
 	}
+}
+
+// calculateMatrixElements converts API requests to matrix elements for providers that charge by elements
+// For Google Maps Distance Matrix: elements = requests × origins × destinations
+// Example: 10 requests with 3 origins and 5 destinations = 10 × 3 × 5 = 150 elements
+func calculateMatrixElements(requests int, matrixParams *domain.MatrixParams) int {
+	if matrixParams == nil || matrixParams.OriginsCount == 0 || matrixParams.DestinationsCount == 0 {
+		// Return requests as-is if matrix params are missing
+		slog.Debug("Matrix params not provided or incomplete, treating requests as elements", "requests", requests)
+		return requests
+	}
+
+	elements := requests * matrixParams.OriginsCount * matrixParams.DestinationsCount
+	slog.Debug("Matrix elements calculated",
+		"requests", requests,
+		"origins", matrixParams.OriginsCount,
+		"destinations", matrixParams.DestinationsCount,
+		"total_elements", elements,
+	)
+	return elements
 }
 
 func calculateAPICost(requests int, pricing domain.APIPricing, applyFreeTier bool) domain.APICostBreakdown {

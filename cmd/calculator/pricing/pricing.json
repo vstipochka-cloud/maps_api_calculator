@@ -85,7 +85,8 @@
           "tier": "Essentials",
           "price_per_1000": 5,
           "free_tier": 10000,
-          "notes": "Routes Matrix (Essentials) – 10K free, $5/1K per element"
+          "calculate_matrix_elements": true,
+          "notes": "Routes Matrix (Essentials) – 10K free, $5/1K per element. Element = origins × destinations. Example: 3 origins + 5 destinations = 15 elements per request"
         },
         "elevation": {
           "unit": "request",

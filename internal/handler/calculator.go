@@ -58,6 +58,16 @@ func (h *CalculatorHandler) CalculateHandler(w http.ResponseWriter, r *http.Requ
 
 	slog.Debug("Validating API types passed", "api_types_count", len(req.APIRequests))
 
+	// Validate matrix_params if distance_matrix is requested
+	if _, hasDistanceMatrix := req.APIRequests["distance_matrix"]; hasDistanceMatrix {
+		if req.MatrixParams == nil || req.MatrixParams.OriginsCount == 0 || req.MatrixParams.DestinationsCount == 0 {
+			slog.Warn("distance_matrix requested without proper matrix_params")
+			http.Error(w, "distance_matrix requires matrix_params with origins_count > 0 and destinations_count > 0", http.StatusBadRequest)
+			return
+		}
+		slog.Debug("Distance matrix params validated", "origins", req.MatrixParams.OriginsCount, "destinations", req.MatrixParams.DestinationsCount)
+	}
+
 	response := h.calc.Calculate(&req, h.pricingData)
 
 	slog.Info("Calculation completed successfully",

@@ -5,6 +5,14 @@ type CalculationRequest struct {
 	DisableNewCustomerCredit bool           `json:"disable_new_customer_credit"`
 	DisableFreeTier          bool           `json:"disable_free_tier"`
 	Currency                 string         `json:"currency"`
+	MatrixParams             *MatrixParams  `json:"matrix_params,omitempty"` // For distance_matrix element calculation
+}
+
+// MatrixParams defines the dimensions of a distance matrix request
+// Used to calculate actual billable units for providers like Google Maps
+type MatrixParams struct {
+	OriginsCount      int `json:"origins_count"`      // Number of origin points
+	DestinationsCount int `json:"destinations_count"` // Number of destination points
 }
 
 type PricingData struct {
@@ -49,14 +57,15 @@ type MonthlyFreeTierInfo struct {
 }
 
 type APIPricing struct {
-	Unit         string        `json:"unit"`
-	Supported    bool          `json:"supported"`
-	DisplayName  string        `json:"display_name,omitempty"`   // Красивое название для отображения
-	PricingModel string        `json:"pricing_model,omitempty"`  // Для API с собственной моделью (annual_license_with_overage, etc)
-	LicenseTiers []LicenseTier `json:"license_tiers,omitempty"`  // Для API с лицензионной моделью
-	PricePer1000 float64       `json:"price_per_1000,omitempty"` // deprecated, use Tiers
-	Tiers        []PricingTier `json:"tiers,omitempty"`          // volume-based pricing
-	FreeTier     int           `json:"free_tier"`
+	Unit                    string        `json:"unit"`
+	Supported               bool          `json:"supported"`
+	DisplayName             string        `json:"display_name,omitempty"`   // Красивое название для отображения
+	PricingModel            string        `json:"pricing_model,omitempty"`  // Для API с собственной моделью (annual_license_with_overage, etc)
+	LicenseTiers            []LicenseTier `json:"license_tiers,omitempty"`  // Для API с лицензионной моделью
+	PricePer1000            float64       `json:"price_per_1000,omitempty"` // deprecated, use Tiers
+	Tiers                   []PricingTier `json:"tiers,omitempty"`          // volume-based pricing
+	FreeTier                int           `json:"free_tier"`
+	CalculateMatrixElements bool          `json:"calculate_matrix_elements,omitempty"` // Set to true for Google Maps distance_matrix
 }
 
 // PricingTier represents a volume-based pricing level
