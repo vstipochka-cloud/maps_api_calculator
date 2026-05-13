@@ -1,18 +1,20 @@
 package usecase
 
 import (
-	"calculator_api/internal/domain"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 )
 
 const (
-	apiKeyHeader            = "X-API-Key"
-	fallbackExchangeRateRUB = 95.0 // Fallback exchange rate for RUB/USD
+	apiKeyHeader              = "X-API-Key"
+	fallbackExchangeRateRUB   = 74.0 // Fallback exchange rate for RUB/USD (requested)
+	fallbackExchangeRateEUR   = 0.85 // Fallback exchange rate for EUR/USD (requested)
+	fallbackExchangeRateOther = 1.0  // Generic fallback
 )
 
 type Converter interface {
@@ -45,16 +47,21 @@ func (c *CurrencyConverter) Convert(
 
 	client := &http.Client{}
 
+	// Build request for exchangerate-api style: {providerUrl}/{apiKey}/pair/USD/{TARGET}
+	target := strings.ToUpper(currency)
+	base := "USD"
+	url := fmt.Sprintf("%s/%s/pair/%s/%s", strings.TrimRight(c.providerUrl, "/"), c.apiKey, base, target)
+	c.log.Info("BBBBB", slog.String("url", url))
 	req, err := http.NewRequestWithContext(
 		ctx,
 		"GET",
-		fmt.Sprintf("%s/fetch-one?from=USD&to=%s", c.providerUrl, currency),
+		url,
 		nil,
 	)
 	if err != nil {
 		c.log.Error("failed to create request", slog.Any("err", err))
 
-		return fallbackExchangeRateRUB, err
+		return fallbackFor(currency), err
 	}
 	req.Header.Add(apiKeyHeader, c.apiKey)
 
@@ -62,11 +69,11 @@ func (c *CurrencyConverter) Convert(
 	if err != nil {
 		c.log.Error("failed to send request", slog.Any("err", err))
 
-		return fallbackExchangeRateRUB, err
+		return fallbackFor(currency), err
 	}
 	if resp.StatusCode != http.StatusOK {
-		c.log.Debug("received not expected http states code, using fallback exchange rate", slog.Int("status_code", resp.StatusCode), slog.Float64("fallback_rate", fallbackExchangeRateRUB))
-		return fallbackExchangeRateRUB, nil
+		c.log.Debug("received not expected http status code, using fallback exchange rate", slog.Int("status_code", resp.StatusCode), slog.String("currency", currency), slog.Float64("fallback_rate", fallbackFor(currency)))
+		return fallbackFor(currency), nil
 	}
 	defer resp.Body.Close()
 
@@ -74,20 +81,40 @@ func (c *CurrencyConverter) Convert(
 	if err != nil {
 		c.log.Error("failed to read response body", slog.Any("error", err))
 
-		return fallbackExchangeRateRUB, err
+		return fallbackFor(currency), err
 	}
 	if len(body) == 0 {
-		c.log.Debug("empty body, using fallback exchange rate")
+		c.log.Debug("empty body, using fallback exchange rate", slog.String("currency", currency), slog.Float64("fallback_rate", fallbackFor(currency)))
 
-		return fallbackExchangeRateRUB, nil
+		return fallbackFor(currency), nil
 	}
 
-	var result domain.CurrencyConvertResp
-	if err := json.Unmarshal(body, &result); err != nil {
-		c.log.Error("failed to unmarshall response", slog.Any("error", err))
-		return fallbackExchangeRateRUB, err
+	// Try parsing exchangerate-api pair response first
+	var pairResp struct {
+		ConversionRate float64 `json:"conversion_rate"`
+		BaseCode       string  `json:"base_code"`
+		TargetCode     string  `json:"target_code"`
+		Result         string  `json:"result"`
 	}
 
-	c.log.Info("received exchange value", slog.Any("exchange_rate", result.Result.Rub))
-	return result.Result.Rub, nil
+	if err := json.Unmarshal(body, &pairResp); err == nil {
+		if pairResp.ConversionRate > 0 {
+			c.log.Info("received exchange value", slog.String("currency", target), slog.Float64("exchange_rate", pairResp.ConversionRate))
+			return pairResp.ConversionRate, nil
+		}
+	}
+
+	c.log.Debug("no exchange rate found in response body, using configured fallback", slog.String("currency", currency), slog.Float64("fallback_rate", fallbackFor(currency)))
+	return fallbackFor(currency), nil
+}
+
+func fallbackFor(currency string) float64 {
+	switch strings.ToUpper(currency) {
+	case "RUB":
+		return fallbackExchangeRateRUB
+	case "EUR":
+		return fallbackExchangeRateEUR
+	default:
+		return fallbackExchangeRateOther
+	}
 }

@@ -15,14 +15,20 @@ type MatrixParams struct {
 	DestinationsCount int `json:"destinations_count"` // Number of destination points
 }
 
+type APITypeDescription struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
 type PricingData struct {
 	Metadata struct {
 		Currency    string `json:"currency"`
 		LastUpdated string `json:"last_updated"`
 		Note        string `json:"note"`
 	} `json:"metadata"`
-	APITypes  []string                   `json:"api_types"`
-	Providers map[string]ProviderPricing `json:"providers"`
+	APITypes        []string                      `json:"api_types"`
+	APIDescriptions map[string]APITypeDescription `json:"api_descriptions,omitempty"`
+	Providers       map[string]ProviderPricing    `json:"providers"`
 }
 
 type ProviderPricing struct {
@@ -59,13 +65,17 @@ type MonthlyFreeTierInfo struct {
 type APIPricing struct {
 	Unit                    string        `json:"unit"`
 	Supported               bool          `json:"supported"`
-	DisplayName             string        `json:"display_name,omitempty"`   // Красивое название для отображения
-	PricingModel            string        `json:"pricing_model,omitempty"`  // Для API с собственной моделью (annual_license_with_overage, etc)
-	LicenseTiers            []LicenseTier `json:"license_tiers,omitempty"`  // Для API с лицензионной моделью
-	PricePer1000            float64       `json:"price_per_1000,omitempty"` // deprecated, use Tiers
-	Tiers                   []PricingTier `json:"tiers,omitempty"`          // volume-based pricing
+	DisplayName             string        `json:"display_name,omitempty"`
+	PricingModel            string        `json:"pricing_model,omitempty"`
+	LicenseTiers            []LicenseTier `json:"license_tiers,omitempty"`
+	PricePer1000            float64       `json:"price_per_1000,omitempty"`
+	Tiers                   []PricingTier `json:"tiers,omitempty"` // volume-based pricing
 	FreeTier                int           `json:"free_tier"`
 	CalculateMatrixElements bool          `json:"calculate_matrix_elements,omitempty"` // Set to true for Google Maps distance_matrix
+	// Yandex-specific (and similar) metadata for free daily usage and licensing rules
+	FreeDailyLimit              int    `json:"free_daily_limit,omitempty"`
+	FreeUsageConditions         string `json:"free_usage_conditions,omitempty"`
+	OnExceedRequiresFullLicense bool   `json:"on_exceed_requires_full_license,omitempty"`
 }
 
 // PricingTier represents a volume-based pricing level
@@ -80,6 +90,7 @@ type CalculationResult struct {
 	Name          string                      `json:"name"`
 	URL           string                      `json:"url"`
 	Cost          float64                     `json:"cost"`
+	PerRequest    float64                     `json:"per_request"`
 	ConvertedCost float64                     `json:"converted_cost"`
 	Breakdown     map[string]APICostBreakdown `json:"breakdown"`
 	Notes         string                      `json:"notes,omitempty"`
@@ -93,6 +104,18 @@ type APICostBreakdown struct {
 	BilledRequests int     `json:"billed_requests"`
 	Cost           float64 `json:"cost"`
 	ConvertedCost  float64 `json:"converted_cost"`
+	// For annual-license providers (e.g., Yandex) provide per-tier comparison:
+	LicenseOptions []LicenseOption `json:"license_options,omitempty"`
+}
+
+type LicenseOption struct {
+	Name                   string  `json:"name"`
+	DailyLimit             int     `json:"daily_limit"`
+	MonthlyLicenseRub      float64 `json:"monthly_license_rub"`
+	MonthlyLicenseLocal    float64 `json:"monthly_license_local"` // converted to base currency/unit (e.g., USD)
+	OverageIfStayOnBaseRub float64 `json:"overage_if_stay_on_base_rub"`
+	OverageIfStayOnBase    float64 `json:"overage_if_stay_on_base"` // converted
+	Cheaper                string  `json:"cheaper"`                 // "upgrade" | "overage" | "equal"
 }
 
 type CalculationResponse struct {
@@ -106,9 +129,5 @@ type CalculationResponse struct {
 }
 
 type CurrencyConvertResp struct {
-	Result CurrencyResult `json:"result"`
-}
-
-type CurrencyResult struct {
-	Rub float64 `json:"RUB"`
+	Result map[string]float64 `json:"result"`
 }

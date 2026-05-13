@@ -16,7 +16,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-const providerURL = "https://api.fastforex.io"
+const providerURL = "https://v6.exchangerate-api.com/v6"
 
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
@@ -71,8 +71,9 @@ func main() {
 
 	apiKey := os.Getenv("API_KEY")
 	if apiKey == "" {
-		apiKey = "fdd9fb5814-a9953c3d02-tbw6rr"
-		log.Print("empty api key")
+		// Default to the provided exchangerate-api key if env not set
+		apiKey = "8335429561107890f856c95f"
+		log.Print("empty api key, using default exchangerate key")
 	}
 
 	converter := usecase.NewCurrencyConverter(providerURL, apiKey, *logger)

@@ -99,13 +99,18 @@ func (h *CalculatorHandler) ProvidersHandler(w http.ResponseWriter, r *http.Requ
 			"apis": getProviderAPIs(provider),
 		}
 		providers = append(providers, p)
+		if provider.Name == "Mapbox" {
+			ind := len(providers) - 1
+			providers[ind] = providers[0]
+			providers[0] = p
+		}
 		slog.Debug("Provider info prepared", "provider_id", id, "apis_count", len(provider.APIs))
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"providers": providers,
-		"api_types": h.pricingData.APITypes,
+		"providers":        providers,
+		"api_types":        h.pricingData.APITypes,
+		"api_descriptions": h.pricingData.APIDescriptions,
 	})
 
 	slog.Info("Providers list sent", "providers_count", len(providers))

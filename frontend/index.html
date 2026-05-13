@@ -70,17 +70,9 @@
 
         <div class="api-types-section">
             <h2>Supported API Types</h2>
+            <p class="form-hint">Click on any API type to see description</p>
             <div class="api-grid">
-                <div class="api-tag">Geocoding</div>
-                <div class="api-tag">Routing</div>
-                <div class="api-tag">Map Tiles Raster</div>
-                <div class="api-tag">Map Tiles Vector 2D</div>
-                <div class="api-tag">Map Tiles Vector 3D</div>
-                <div class="api-tag">Static Maps</div>
-                <div class="api-tag">Street View</div>
-                <div class="api-tag">Distance Matrix</div>
-                <div class="api-tag">Elevation</div>
-                <div class="api-tag">Aerial View</div>
+                <!-- Will be populated by JavaScript -->
             </div>
         </div>
     </section>
@@ -101,10 +93,12 @@
                 </div>
 
                 <div class="form-section">
-                    <h3>Step 2: Distance Matrix Parameters (if using)</h3>
+                    <h3>Step 2: Distance Matrix Parameters (if using)
+                        <button id="matrixToggleBtn" class="collapsible-toggle" aria-expanded="false">Show</button>
+                    </h3>
                     <p class="form-hint">Required for accurate pricing: specify the dimensions of your distance matrix requests</p>
                     
-                    <div id="matrixParamsSection" class="matrix-params">
+                    <div id="matrixParamsSection" class="matrix-params hidden">
                         <div class="form-group">
                             <label for="originsCount">
                                 <span>Number of Origin Points</span>
@@ -143,6 +137,7 @@
                         <select id="currencySelector">
                             <option value="USD">USD</option>
                             <option value="RUB">RUB (Russian Ruble)</option>
+                            <option value="EUR">EUR (Euro)</option>
                         </select>
                     </label>
                 </div>
@@ -204,7 +199,6 @@
                     <ul>
                         <li><strong>Free Tiers:</strong> Monthly free requests included with each provider</li>
                         <li><strong>Volume Discounts:</strong> Lower prices at higher volumes (e.g., Mapbox)</li>
-                        <li><strong>Shared Pools:</strong> HERE's 250K shared pool across all APIs</li>
                         <li><strong>New Customer Credits:</strong> Google's $300 trial credit for new accounts</li>
                     </ul>
                 </div>
@@ -228,7 +222,7 @@
                             <span>Free Tier</span>
                             <span>25K/API</span>
                             <span>50-100K/API</span>
-                            <span>250K shared</span>
+                            <span>Varies by plan</span>
                         </div>
                         <div class="comp-row">
                             <span>Trial Credit</span>
@@ -241,11 +235,7 @@
 
                 <div class="about-section">
                     <h3>Pricing Model</h3>
-                    <p><strong>HERE Technologies</strong> uses a <strong>shared pool model</strong>:</p>
-                    <p>You get 250,000 free requests per month <strong>combined</strong> across all APIs, after which you pay $0.75 per 1,000 requests.</p>
-                    
-                    <p style="margin-top: 20px;"><strong>Google & Mapbox</strong> use <strong>individual free tiers</strong>:</p>
-                    <p>Each API type has its own free tier, and pricing varies by API.</p>
+                    <p><strong>Provider allowances and tiers</strong> may differ: some providers assign per‑API free tiers while others use provider‑level allowances or plan‑specific bundles. Always consult the provider documentation for exact terms.</p>
                 </div>
 
                 <div class="about-section">

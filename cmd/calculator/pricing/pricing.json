@@ -9,6 +9,7 @@
     "routing",
     "map_tiles_raster", 
     "map_tiles_vector_2d",
+    "dynamic_maps",
     "map_tiles_vector_3d",
     "static_maps",
     "static_street_view",
@@ -16,6 +17,53 @@
     "elevation",
     "aerial_view"
   ],
+  "api_descriptions": {
+    "geocoding": {
+      "name": "Geocoding",
+      "description": "Converts addresses to coordinates and vice versa. Used for location search, address validation, and mapping user input to map coordinates."
+    },
+    "routing": {
+      "name": "Routing",
+      "description": "Calculates optimal routes and directions between locations. Essential for navigation, delivery optimization, and turn-by-turn guidance."
+    },
+    "map_tiles_raster": {
+      "name": "Map Tiles Raster",
+      "description": "Pre-rendered image tiles for displaying maps. Used for web and mobile map visualization with static map backgrounds."
+    },
+    "map_tiles_vector_2d": {
+      "name": "Map Tiles Vector 2D",
+      "description": "Scalable vector-based tiles for 2D map rendering. Offers better performance and styling flexibility compared to raster tiles."
+    },
+    "map_tiles_vector_3d": {
+      "name": "Map Tiles Vector 3D",
+      "description": "Photorealistic 3D map tiles with elevation data. Provides immersive 3D map experiences and terrain visualization."
+    },
+    "static_maps": {
+      "name": "Static Maps",
+      "description": "Pre-rendered static map images. Useful for generating map images for emails, documents, and situations where interactive maps aren't needed."
+    },
+    "dynamic_maps": {
+      "name": "Dynamic Maps",
+      "description": "Interactive web map loads (e.g. Mapbox GL JS, Google Dynamic Maps). Billed per map load; supports real-time styling and full client-side interactivity. Use for embedded interactive maps on websites and apps.",
+      "notes": "Includes Map Loads for Web / Dynamic Maps SKUs (Mapbox GL JS, Google Dynamic Maps)."
+    },
+    "static_street_view": {
+      "name": "Street View",
+      "description": "Street-level panoramic imagery for visualization of locations. Great for property listings, travel apps, and street exploration."
+    },
+    "distance_matrix": {
+      "name": "Distance Matrix",
+      "description": "Calculates distances and travel times between multiple origin and destination pairs. Essential for logistics, delivery routing, and journey planning."
+    },
+    "elevation": {
+      "name": "Elevation",
+      "description": "Retrieves elevation data for specific locations. Used for terrain analysis, hiking apps, construction planning, and weather applications."
+    },
+    "aerial_view": {
+      "name": "Aerial View",
+      "description": "High-resolution aerial and satellite imagery. Ideal for real estate, urban planning, environmental monitoring, and detailed location analysis."
+    }
+  },
   "providers": {
     "google_maps": {
       "name": "Google Maps Platform",
@@ -33,74 +81,143 @@
       "apis": {
         "geocoding": {
           "unit": "request",
-          "tier": "Essentials",
-          "price_per_1000": 5,
+          "tiers": [
+            {"from_requests": 0, "to_requests": 10000, "price_per_1000": 0.00},
+            {"from_requests": 10001, "to_requests": 100000, "price_per_1000": 5.00},
+            {"from_requests": 100001, "to_requests": 500000, "price_per_1000": 4.00},
+            {"from_requests": 500001, "to_requests": 1000000, "price_per_1000": 3.00},
+            {"from_requests": 1000001, "to_requests": 5000000, "price_per_1000": 1.50},
+            {"from_requests": 5000001, "to_requests": 0, "price_per_1000": 0.38}
+          ],
           "free_tier": 10000,
-          "notes": "Geocoding API – 10K free/month, then $5/1K"
+          "notes": "Geocoding API – cumulative tiers per Google documentation"
         },
         "routing": {
           "unit": "request",
-          "tier": "Essentials", 
-          "price_per_1000": 5,
+          "tiers": [
+            {"from_requests": 0, "to_requests": 10000, "price_per_1000": 0.00},
+            {"from_requests": 10001, "to_requests": 100000, "price_per_1000": 5.00},
+            {"from_requests": 100001, "to_requests": 500000, "price_per_1000": 4.00},
+            {"from_requests": 500001, "to_requests": 1000000, "price_per_1000": 3.00},
+            {"from_requests": 1000001, "to_requests": 5000000, "price_per_1000": 1.50},
+            {"from_requests": 5000001, "to_requests": 0, "price_per_1000": 0.38}
+          ],
           "free_tier": 10000,
-          "notes": "Routes: Compute Routes (Essentials) – 10K free, $5/1K"
+          "notes": "Compute Routes – cumulative tiers per Google documentation"
         },
         "map_tiles_raster": {
           "unit": "tile_load",
-          "tier": "Essentials",
-          "price_per_1000": 2,
+          "tiers": [
+            {"from_requests": 0, "to_requests": 100000, "price_per_1000": 0.00},
+            {"from_requests": 100001, "to_requests": 1000000, "price_per_1000": 2.00},
+            {"from_requests": 1000001, "to_requests": 0, "price_per_1000": 1.60}
+          ],
           "free_tier": 100000,
-          "notes": "Street View Tiles – 100K free, $2/1K"
+          "notes": "Street View / Raster Tiles – 100K free/month, then $2/1K"
+        },
+        "dynamic_maps": {
+          "unit": "map_load",
+          "tiers": [
+            {"from_requests": 0, "to_requests": 10000, "price_per_1000": 0.00},
+            {"from_requests": 10001, "to_requests": 100001, "price_per_1000": 7.00},
+            {"from_requests": 10001, "to_requests": 500000, "price_per_1000": 5.60},
+            {"from_requests": 500000, "to_requests": 1000000, "price_per_1000": 4.20},
+            {"from_requests": 1000000, "to_requests": 0, "price_per_1000": 2.10}
+          ],
+          "free_tier": 10000,
+          "notes": "Customize and style interactive maps using Cloud-based maps styling for real-time updates across devices and platforms"
         },
         "map_tiles_vector_2d": {
           "unit": "tile_load",
-          "tier": "Essentials",
-          "price_per_1000": 0.6,
+          "tiers": [
+            {"from_requests": 0, "to_requests": 100000, "price_per_1000": 0.00},
+            {"from_requests": 100001, "to_requests": 1000000, "price_per_1000": 0.60},
+            {"from_requests": 1000001, "to_requests": 5000000, "price_per_1000": 0.48},
+            {"from_requests": 5000001, "to_requests": 10000000, "price_per_1000": 0.36},
+            {"from_requests": 10000001, "to_requests": 50000000, "price_per_1000": 0.18},
+            {"from_requests": 50000001, "to_requests": 0, "price_per_1000": 0.045}
+          ],
           "free_tier": 100000,
-          "notes": "2D Map Tiles – 100K free, $0.60/1K"
+          "notes": "Map Tiles 2D – cumulative tiers per Google documentation"
         },
         "map_tiles_vector_3d": {
           "unit": "root_tile_request",
-          "tier": "Enterprise", 
-          "price_per_1000": 6,
+          "tiers": [
+            {"from_requests": 0, "to_requests": 1000, "price_per_1000": 0.00},
+            {"from_requests": 1001, "to_requests": 100000, "price_per_1000": 6.00},
+            {"from_requests": 100001, "to_requests": 500000, "price_per_1000": 5.10},
+            {"from_requests": 500001, "to_requests": 1000000, "price_per_1000": 4.20},
+            {"from_requests": 1000001, "to_requests": 5000000, "price_per_1000": 3.30},
+            {"from_requests": 5000001, "to_requests": 0, "price_per_1000": 2.40}
+          ],
           "free_tier": 1000,
-          "notes": "Photorealistic 3D Tiles – 1K free, $6/1K"
+          "notes": "Map Tiles 3D – cumulative tiers per Google documentation"
         },
         "static_maps": {
           "unit": "map_load",
-          "tier": "Essentials",
-          "price_per_1000": 2,
+          "tiers": [
+            {"from_requests": 0, "to_requests": 10000, "price_per_1000": 0.00},
+            {"from_requests": 10001, "to_requests": 100000, "price_per_1000": 2.00},
+            {"from_requests": 100001, "to_requests": 500000, "price_per_1000": 1.60},
+            {"from_requests": 500001, "to_requests": 1000000, "price_per_1000": 1.20},
+            {"from_requests": 1000001, "to_requests": 5000000, "price_per_1000": 0.60},
+            {"from_requests": 5000001, "to_requests": 0, "price_per_1000": 0.15}
+          ],
           "free_tier": 10000,
-          "notes": "Static Maps API – 10K free, $2/1K"
+          "notes": "Static Maps – cumulative tiers per Google documentation"
         },
         "static_street_view": {
           "unit": "panorama",
-          "tier": "Essentials",
-          "price_per_1000": 7,
+          "tiers": [
+            {"from_requests": 0, "to_requests": 10000, "price_per_1000": 0.00},
+            {"from_requests": 10001, "to_requests": 100000, "price_per_1000": 7.00},
+            {"from_requests": 100001, "to_requests": 500000, "price_per_1000": 5.60},
+            {"from_requests": 500001, "to_requests": 1000000, "price_per_1000": 4.20},
+            {"from_requests": 1000001, "to_requests": 5000000, "price_per_1000": 2.10},
+            {"from_requests": 5000001, "to_requests": 0, "price_per_1000": 0.53}
+          ],
           "free_tier": 10000,
-          "notes": "Static Street View – 10K free, $7/1K"
+          "notes": "Static Street View – cumulative tiers per Google documentation"
         },
         "distance_matrix": {
           "unit": "element",
-          "tier": "Essentials",
-          "price_per_1000": 5,
-          "free_tier": 10000,
           "calculate_matrix_elements": true,
-          "notes": "Routes Matrix (Essentials) – 10K free, $5/1K per element. Element = origins × destinations. Example: 3 origins + 5 destinations = 15 elements per request"
+          "tiers": [
+            {"from_requests": 0, "to_requests": 10000, "price_per_1000": 0.00},
+            {"from_requests": 10001, "to_requests": 100000, "price_per_1000": 5.00},
+            {"from_requests": 100001, "to_requests": 500000, "price_per_1000": 4.00},
+            {"from_requests": 500001, "to_requests": 1000000, "price_per_1000": 3.00},
+            {"from_requests": 1000001, "to_requests": 5000000, "price_per_1000": 1.50},
+            {"from_requests": 5000001, "to_requests": 0, "price_per_1000": 0.38}
+          ],
+          "free_tier": 10000,
+          "notes": "Routes Matrix – cumulative tiers per Google documentation; Element = origins × destinations"
         },
         "elevation": {
           "unit": "request",
-          "tier": "Pro",
-          "price_per_1000": 5,
+          "tiers": [
+            {"from_requests": 0, "to_requests": 5000, "price_per_1000": 0.00},
+            {"from_requests": 5001, "to_requests": 100000, "price_per_1000": 5.00},
+            {"from_requests": 100001, "to_requests": 500000, "price_per_1000": 4.00},
+            {"from_requests": 500001, "to_requests": 1000000, "price_per_1000": 3.00},
+            {"from_requests": 1000001, "to_requests": 5000000, "price_per_1000": 1.50},
+            {"from_requests": 5000001, "to_requests": 0, "price_per_1000": 0.38}
+          ],
           "free_tier": 5000,
-          "notes": "Elevation API (Pro) – 5K free, $5/1K"
+          "notes": "Elevation – cumulative tiers per Google documentation"
         },
         "aerial_view": {
           "unit": "request",
-          "tier": "Pro",
-          "price_per_1000": 16,
+          "tiers": [
+            {"from_requests": 0, "to_requests": 5000, "price_per_1000": 0.00},
+            {"from_requests": 5001, "to_requests": 100000, "price_per_1000": 16.00},
+            {"from_requests": 100001, "to_requests": 500000, "price_per_1000": 12.80},
+            {"from_requests": 500001, "to_requests": 1000000, "price_per_1000": 9.60},
+            {"from_requests": 1000001, "to_requests": 5000000, "price_per_1000": 4.80},
+            {"from_requests": 5000001, "to_requests": 0, "price_per_1000": 1.20}
+          ],
           "free_tier": 5000,
-          "notes": "Aerial View API (Pro) – 5K free, $16/1K"
+          "notes": "Aerial View – cumulative tiers per Google documentation"
         }
       }
     },
@@ -177,6 +294,19 @@
           "free_tier": 0,
           "notes": "Static Images API – Free (0-50k), $1.00/1K (50k-500k), $0.80/1K (500k-1M), $0.60/1K (1M+)"
         },
+        "dynamic_maps": {
+          "unit": "map_load",
+          "tiers": [
+            {"from_requests": 0, "to_requests": 50000, "price_per_1000": 0.00},
+            {"from_requests": 50001, "to_requests": 100000, "price_per_1000": 5.00},
+            {"from_requests": 100001, "to_requests": 200000, "price_per_1000": 4.00},
+            {"from_requests": 200001, "to_requests": 1000000, "price_per_1000": 3.00},
+            {"from_requests": 1000001, "to_requests": 5000000, "price_per_1000": 2.50},
+            {"from_requests": 5000001, "to_requests": 0, "price_per_1000": 2.50}
+          ],
+          "free_tier": 50000,
+          "notes": "Mapbox GL JS Map Loads for Web — tiers: up to 50k free; 50k+ billed per 1k as shown; contact sales for >5M"
+        },
         "static_street_view": {
           "unit": "request",
           "supported": false,
@@ -185,7 +315,8 @@
           "notes": "Not offered by Mapbox"
         },
         "distance_matrix": {
-          "unit": "request",
+          "unit": "element",
+          "calculate_matrix_elements": true,
           "tiers": [
             {"from_requests": 0, "to_requests": 100000, "price_per_1000": 0.00},
             {"from_requests": 100001, "to_requests": 500000, "price_per_1000": 2.00},
@@ -226,8 +357,8 @@
           "unit": "request",
           "tiers": [
             {"from_requests": 0, "to_requests": 30000, "price_per_1000": 0.00},
-            {"from_requests": 30001, "to_requests": 500000, "price_per_1000": 0.83},
-            {"from_requests": 500001, "to_requests": 5000000, "price_per_1000": 0.66}
+            {"from_requests": 30001, "to_requests": 500000, "price_per_1000": 0.88},
+            {"from_requests": 500001, "to_requests": 5000000, "price_per_1000": 0.7}
           ],
           "free_tier": 0,
           "notes": "Geocode and Reverse Geocode – Free (0-30k), $0.125/1K (30k-500k), $0.100/1K (500k-5M), $0.083/1K (5M+)"
@@ -236,8 +367,8 @@
           "unit": "request",
           "tiers": [
             {"from_requests": 0, "to_requests": 30000, "price_per_1000": 0.00},
-            {"from_requests": 30001, "to_requests": 5000000, "price_per_1000": 0.83},
-            {"from_requests": 5000001, "to_requests": 10000000, "price_per_1000": 0.66},
+            {"from_requests": 30001, "to_requests": 5000000, "price_per_1000": 0.88},
+            {"from_requests": 5000001, "to_requests": 10000000, "price_per_1000": 0.7},
             {"from_requests": 10000001, "to_requests": 0, "price_per_1000": 0.66}
           ],
           "free_tier": 0,
@@ -247,9 +378,8 @@
           "unit": "tile_load",
           "tiers": [
             {"from_requests": 0, "to_requests": 30000, "price_per_1000": 0.00},
-            {"from_requests": 30001, "to_requests": 5000000, "price_per_1000": 0.15},
-            {"from_requests": 5000001, "to_requests": 10000000, "price_per_1000": 0.12},
-            {"from_requests": 10000001, "to_requests": 0, "price_per_1000": 0.10}
+            {"from_requests": 30001, "to_requests": 5000000, "price_per_1000": 0.88},
+            {"from_requests": 5000001, "to_requests": 0, "price_per_1000": 0.7}
           ],
           "free_tier": 0,
           "notes": "Raster Tile – Free (0-30k), ~$0.15/1K (30k-5M), ~$0.12/1K (5M-10M), Contact sales (10M+)"
@@ -258,9 +388,8 @@
           "unit": "tile_load",
           "tiers": [
             {"from_requests": 0, "to_requests": 30000, "price_per_1000": 0.00},
-            {"from_requests": 30001, "to_requests": 5000000, "price_per_1000": 0.083},
-            {"from_requests": 5000001, "to_requests": 10000000, "price_per_1000": 0.066},
-            {"from_requests": 10000001, "to_requests": 0, "price_per_1000": 0.050}
+            {"from_requests": 30001, "to_requests": 5000000, "price_per_1000": 0.088},
+            {"from_requests": 5000001, "to_requests": 0, "price_per_1000": 0.07}
           ],
           "free_tier": 0,
           "notes": "Vector Tile – Free (0-30k), $0.083/1K (30k-5M), $0.066/1K (5M-10M), $0.050/1K (10M+)"
@@ -296,10 +425,11 @@
         },
         "distance_matrix": {
           "unit": "request",
+          "calculate_matrix_elements": true,
           "tiers": [
             {"from_requests": 0, "to_requests": 2500, "price_per_1000": 0.00},
-            {"from_requests": 2501, "to_requests": 200000, "price_per_1000": 5.50},
-            {"from_requests": 200001, "to_requests": 1000000, "price_per_1000": 4.40},
+            {"from_requests": 2501, "to_requests": 200000, "price_per_1000": 5.83},
+            {"from_requests": 200001, "to_requests": 1000000, "price_per_1000": 4.66},
             {"from_requests": 1000001, "to_requests": 0, "price_per_1000": 4.40}
           ],
           "free_tier": 0,
@@ -332,7 +462,7 @@
         "geocoding": {
           "unit": "request",
           "supported": true,
-          "display_name": "JavaScript API + Геокодер",
+          "display_name": "Геокодер",
           "pricing_model": "annual_license_with_overage",
           "license_tiers": [
             {"daily_limit": 1000, "annual_price_rub": 226200, "overage_per_1000_rub": 390, "name": "Базовый"},
@@ -341,12 +471,15 @@
             {"daily_limit": 50000, "annual_price_rub": 2210000, "overage_per_1000_rub": 163, "name": "Премиум"},
             {"daily_limit": 100000, "annual_price_rub": 2652000, "overage_per_1000_rub": 163, "name": "Энтерпрайз"}
           ],
-          "free_tier": 0
+          "free_tier": 0,
+          "free_daily_limit": 1000,
+          "free_usage_conditions": "При выполнении условий бесплатного использования",
+          "on_exceed_requires_full_license": false
         },
         "static_maps": {
           "unit": "request",
           "supported": true,
-          "display_name": "Static API + Геосаджест + Локатор",
+          "display_name": "Static API ",
           "pricing_model": "annual_license_with_overage",
           "license_tiers": [
             {"daily_limit": 10000, "annual_price_rub": 208800, "overage_per_1000_rub": 360, "name": "Базовый"},
@@ -355,7 +488,25 @@
             {"daily_limit": 500000, "annual_price_rub": 2040000, "overage_per_1000_rub": 150, "name": "Премиум"},
             {"daily_limit": 1000000, "annual_price_rub": 2448000, "overage_per_1000_rub": 150, "name": "Энтерпрайз"}
           ],
-          "free_tier": 0
+          "free_tier": 0,
+          "free_daily_limit": 10000,
+          "free_usage_conditions": "При выполнении условий бесплатного использования",
+          "on_exceed_requires_full_license": true
+        },
+        "dynamic_maps": {
+          "unit": "map_load",
+          "supported": true,
+          "display_name": "Интерактивные карты",
+          "pricing_model": "annual_license_with_overage",
+          "license_tiers": [
+            {"daily_limit": 500, "annual_price_rub": 195000, "overage_per_1000_rub": 390, "name": "Базовый"},
+            {"daily_limit": 9999999, "annual_price_rub": 234000, "overage_per_1000_rub": 0, "name": "Безлимит"}
+          ],
+          "free_tier": 0,
+          "free_daily_limit": 500,
+          "free_usage_conditions": "500 запросов в сутки бесплатны; при превышении — переплата по 390₽/1k или покупка безлимитной лицензии",
+          "on_exceed_requires_full_license": false,
+          "notes": "Annual license for interactive maps; overage = ₽390 per 1k"
         },
         "distance_matrix": {
           "unit": "request",
@@ -383,12 +534,15 @@
             {"daily_limit": 100000, "annual_price_rub": 1820000, "overage_per_1000_rub": 78, "name": "Премиум"},
             {"daily_limit": 300000, "annual_price_rub": 2184000, "overage_per_1000_rub": 59, "name": "Энтерпрайз"}
           ],
-          "free_tier": 0
+          "free_tier": 0,
+          "free_daily_limit": 5000,
+          "free_usage_conditions": "При выполнении условий бесплатного использования",
+          "on_exceed_requires_full_license": true
         },
         "routing": {
           "unit": "request",
           "supported": true,
-          "display_name": "Поиск по организациям",
+          "display_name": "Получение деталей маршрута",
           "pricing_model": "annual_license_with_overage",
           "license_tiers": [
             {"daily_limit": 1000, "annual_price_rub": 226200, "overage_per_1000_rub": 390, "name": "Базовый"},
@@ -402,7 +556,15 @@
         "map_tiles_raster": {
           "unit": "request",
           "supported": false,
-          "free_tier": 0
+          "license_tiers": [
+            {"daily_limit": 10000, "annual_price_rub": 208800, "overage_per_1000_rub": 360, "name": "Базовый"},
+            {"daily_limit": 100000, "annual_price_rub": 626400, "overage_per_1000_rub": 180, "name": "Профи"},
+            {"daily_limit": 250000, "annual_price_rub": 1183200, "overage_per_1000_rub": 150, "name": "Бизнес"},
+            {"daily_limit": 500000, "annual_price_rub": 2040000, "overage_per_1000_rub": 150, "name": "Премиум"},
+            {"daily_limit": 1000000, "annual_price_rub": 2448000, "overage_per_1000_rub": 150, "name": "Энтерпрайз"}
+          ],
+          "free_tier": 0,
+          "notes": "Map tiles raster available under annual license tiers (licence for year available); marked unsupported to avoid charging when requests=0"
         },
         "map_tiles_vector_3d": {
           "unit": "request",

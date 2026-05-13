@@ -10,6 +10,7 @@ const app = {
     },
     currentResults: null,
     apiTypes: [],
+    apiDescriptions: {},
     providers: [],
 
     // Initialize app
@@ -17,6 +18,7 @@ const app = {
         this.setupNavigation();
         this.loadProvidersAndInit();
         this.setupEventListeners();
+        this.populateAPITypesSection();
         console.log('API Calculator Frontend loaded');
         console.log('Backend API: ' + this.apiBaseURL);
     },
@@ -33,10 +35,12 @@ const app = {
             .then(data => {
                 this.providers = data.providers || [];
                 this.apiTypes = data.api_types || [];
+                this.apiDescriptions = data.api_descriptions || {};
                 this.populateAPISelectors();
                 this.populateProviders();
                 console.log('Loaded ' + this.providers.length + ' providers');
                 console.log('Loaded ' + this.apiTypes.length + ' API types');
+                console.log('Loaded ' + Object.keys(this.apiDescriptions).length + ' API descriptions');
             })
             .catch(error => {
                 console.error('Failed to load providers:', error);
@@ -59,15 +63,24 @@ const app = {
                 card.innerHTML += '<span class="badge">Recommended</span>';
             }
             
-            const apisList = provider.apis ? provider.apis.join(', ') : 'N/A';
+            // Create a nicely formatted list of APIs
+            const apisHtml = provider.apis.map(apiType => {
+                const description = this.apiDescriptions[apiType];
+                const displayName = description ? description.name : this.formatAPIName(apiType);
+                return `
+                    <li class="api-item">
+                        <span class="api-name">${displayName}</span>
+                    </li>
+                `;
+            }).join('');
             
             card.innerHTML += `
                 <h3>${provider.name}</h3>
-                <p class="desc">Visit official website</p>
-                <ul>
-                    <li>${apisList}</li>
+                <p class="desc">Supported APIs</p>
+                <ul class="api-list">
+                    ${apisHtml}
                 </ul>
-                <a href="${provider.url}" target="_blank" style="color: var(--primary); text-decoration: none;">View Pricing</a>
+                <a href="${provider.url}" target="_blank" class="view-pricing-link">View Pricing →</a>
             `;
             
             providersGrid.appendChild(card);
@@ -114,13 +127,33 @@ const app = {
             const selector = document.createElement('div');
             selector.className = 'api-selector';
             
-            const label = document.createElement('label');
-            label.textContent = this.formatAPIName(apiType);
+            const description = this.apiDescriptions[apiType];
+            const displayName = description ? description.name : this.formatAPIName(apiType);
+            const tooltipText = description ? description.description : '';
             
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.value = apiType;
             checkbox.id = `api-${apiType}`;
+            
+            const labelContainer = document.createElement('div');
+            labelContainer.className = 'api-label-container';
+
+            const label = document.createElement('label');
+            label.textContent = displayName;
+            label.htmlFor = `api-${apiType}`;
+            label.className = 'api-selector-label';
+
+            const infoToggle = document.createElement('button');
+            infoToggle.type = 'button';
+            infoToggle.className = 'api-info-toggle';
+            infoToggle.textContent = 'ⓘ';
+            infoToggle.title = 'Show description';
+
+            labelContainer.appendChild(label);
+            if (tooltipText) {
+                labelContainer.appendChild(infoToggle);
+            }
             
             const input = document.createElement('input');
             input.type = 'number';
@@ -130,6 +163,14 @@ const app = {
             input.placeholder = 'Enter requests';
             input.id = `count-${apiType}`;
             input.disabled = true;
+            
+            const inputContainer = document.createElement('div');
+            inputContainer.className = 'api-input-container';
+            inputContainer.appendChild(input);
+            const unitSpan = document.createElement('span');
+            unitSpan.className = 'api-unit';
+            unitSpan.textContent = 'requests/month';
+            inputContainer.appendChild(unitSpan);
             
             // Enable/disable input based on checkbox
             checkbox.addEventListener('change', (e) => {
@@ -141,17 +182,57 @@ const app = {
                 }
             });
             
+            const descSpan = document.createElement('div');
+            descSpan.className = 'api-description-inline';
+            descSpan.textContent = tooltipText;
+
+            // Toggle description visibility (inline, small, non-layout-shifting)
+            if (tooltipText) {
+                infoToggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    descSpan.classList.toggle('visible');
+                    infoToggle.classList.toggle('active');
+                });
+            }
+            
             selector.appendChild(checkbox);
-            selector.appendChild(label);
-            selector.appendChild(input);
-            selector.appendChild(document.createTextNode(' requests/month'));
+            // place description inside label container so it doesn't create big gaps
+            if (tooltipText) {
+                labelContainer.appendChild(descSpan);
+            }
+            selector.appendChild(labelContainer);
+            selector.appendChild(inputContainer);
             
             container.appendChild(selector);
         });
     },
 
+    // Populate API types section with interactive cards
+    populateAPITypesSection() {
+        const container = document.querySelector('.api-grid');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        this.apiTypes.forEach(apiType => {
+            const description = this.apiDescriptions[apiType];
+            const displayName = description ? description.name : this.formatAPIName(apiType);
+            
+            const tag = document.createElement('div');
+            tag.className = 'api-tag-interactive';
+            tag.textContent = displayName;
+            
+            container.appendChild(tag);
+        });
+    },
+
     // Format API names for display
     formatAPIName(apiType) {
+        const description = this.apiDescriptions[apiType];
+        if (description) {
+            return description.name;
+        }
+        
         const names = {
             'geocoding': 'Geocoding',
             'routing': 'Routing',
@@ -186,6 +267,22 @@ const app = {
             destinationsInput.addEventListener('change', updateTotalElements);
             originsInput.addEventListener('input', updateTotalElements);
             destinationsInput.addEventListener('input', updateTotalElements);
+        }
+        
+        // Toggle visibility of matrix params section to save space
+        const matrixToggle = document.getElementById('matrixToggleBtn');
+        const matrixSection = document.getElementById('matrixParamsSection');
+        if (matrixToggle && matrixSection) {
+            matrixToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                const isHidden = matrixSection.classList.toggle('hidden');
+                matrixToggle.setAttribute('aria-expanded', String(!isHidden));
+                matrixToggle.textContent = isHidden ? 'Show' : 'Hide';
+                if (!isHidden) {
+                    // When revealed, ensure totals are up to date
+                    this.updateTotalElements();
+                }
+            });
         }
     },
     
@@ -310,12 +407,13 @@ const app = {
         // Display best value card
         const bestResult = data.results[0];
         const bestValueCard = document.getElementById('bestValueCard');
-        const cost = data.currency === 'RUB' ? bestResult.converted_cost : bestResult.cost;
+        // Use converted_cost when currency is provided and not USD
+        const displayCost = (data.currency && data.currency !== 'USD' && bestResult.converted_cost) ? bestResult.converted_cost : bestResult.cost;
         bestValueCard.innerHTML = `
             <h3>Best Value: ${bestResult.name}</h3>
-            <div class="price">${this.formatCurrency(cost, data.currency)}</div>
+            <div class="price">${this.formatCurrency(displayCost, data.currency)}</div>
             <div class="unit">per month</div>
-            ${data.currency === 'RUB' ? `<div class="exchange-info">Exchange rate: 1 USD = ${data.exchange_rate.toFixed(2)} RUB</div>` : ''}
+            ${data.currency && data.currency !== 'USD' ? `<div class="exchange-info">Exchange rate: 1 USD = ${Number(data.exchange_rate).toFixed(4)} ${data.currency}</div>` : ''}
             ${bestResult.notes ? `<p>${bestResult.notes}</p>` : ''}
         `;
 
@@ -332,14 +430,16 @@ const app = {
 
             let breakdownHTML = '';
             if (result.breakdown && Object.keys(result.breakdown).length > 0) {
-                breakdownHTML = '<div class="breakdown"><strong>Breakdown:</strong>';
+                breakdownHTML = '<div class="breakdown"><strong>Breakdown by API:</strong>';
                 for (const [apiType, breakdown] of Object.entries(result.breakdown)) {
                     const breakdownCost = data.currency === 'RUB' ? (breakdown.converted_cost || 0) : breakdown.cost;
                     const displayName = breakdown.display_name || this.formatAPIName(apiType);
+                    const description = this.apiDescriptions[apiType];
+                    const tooltipText = description ? description.description : '';
                     breakdownHTML += `
-                        <div class="breakdown-item">
-                            <span>${displayName}</span>
-                            <span>${this.formatCurrency(breakdownCost, data.currency)}</span>
+                        <div class="breakdown-item" title="${tooltipText}">
+                            <span class="breakdown-api-name">${displayName}</span>
+                            <span class="breakdown-cost">${this.formatCurrency(breakdownCost, data.currency)}</span>
                         </div>
                     `;
                 }
@@ -369,43 +469,65 @@ const app = {
         const summaryRows = document.getElementById('summaryRows');
         summaryRows.innerHTML = '';
 
-        const totalRequests = data.results[0].breakdown ? 
-            Object.values(data.results[0].breakdown).reduce((sum, item) => sum + item.requests, 0) : 0;
-
         data.results.forEach(result => {
             const row = document.createElement('div');
             row.className = 'summary-row';
-            
-            const cost = data.currency === 'RUB' ? result.converted_cost : result.cost;
-            const perRequest = totalRequests > 0 ? (cost / totalRequests * 1000).toFixed(2) : '0.00';
-            
-            const currencySymbol = data.currency === 'RUB' ? 'руб' : '$';
+
+            const cost = (data.currency && data.currency !== 'USD' && result.converted_cost) ? result.converted_cost : result.cost;
+            // Use per_request from backend when available (per single request)
+            const perRequestRaw = result.per_request !== undefined ? Number(result.per_request) : null;
+
+            let perRequestDisplay = '0.00';
+            if (perRequestRaw !== null && !isNaN(perRequestRaw)) {
+                if (data.currency === 'RUB') {
+                    perRequestDisplay = 'руб' + perRequestRaw.toFixed(2);
+                } else if (data.currency === 'EUR') {
+                    perRequestDisplay = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(perRequestRaw);
+                } else {
+                    perRequestDisplay = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(perRequestRaw);
+                }
+            } else {
+                perRequestDisplay = '-';
+            }
 
             row.innerHTML = `
                 <div>${result.name}</div>
                 <div>${this.formatCurrency(cost, data.currency)}</div>
-                <div>${currencySymbol}${perRequest}</div>
+                <div>${perRequestDisplay}</div>
             `;
-            
+
             summaryRows.appendChild(row);
         });
     },
 
     // Format currency
     formatCurrency(amount, currency = 'USD') {
+        if (!currency || currency === 'USD') {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount || 0);
+        }
         if (currency === 'RUB') {
             const formatted = new Intl.NumberFormat('ru-RU', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
-            }).format(amount);
+            }).format(amount || 0);
             return '₽ ' + formatted;
         }
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }).format(amount);
+        if (currency === 'EUR') {
+            return new Intl.NumberFormat('en-IE', {
+                style: 'currency',
+                currency: 'EUR',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount || 0);
+        }
+
+        // Fallback: format as plain number
+        return (amount || 0).toFixed(2);
     }
 };
 
